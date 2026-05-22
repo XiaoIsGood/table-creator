@@ -364,6 +364,7 @@
       this._selectable = !!options.selectable;
       this._resizable = !!options.resizable;
       this._listeners = [];
+      this._pageListeners = [];
 
       // State — starts empty
       this._data = [];
@@ -453,19 +454,34 @@
       this._pagination.update(this._page, totalPages);
     }
 
-    _notify(type) {
+    _buildState() {
       const totalPages = this._pageSize ? Math.ceil(this._total / this._pageSize) : 1;
-      const state = {
-        type: type || 'select',
+      const selectedKeys = this._selectable ? this._selectManager.getSelectedKeys() : [];
+      const selectedRows = this._selectable
+        ? this._data.filter(row => selectedKeys.includes(row[this._columns[0].key]))
+        : [];
+      return {
         page: this._page,
         pageSize: this._pageSize,
         total: this._total,
         totalPages: totalPages,
-        selectedKeys: this._selectable ? this._selectManager.getSelectedKeys() : [],
+        data: [...this._data],
+        selectedKeys: selectedKeys,
+        selectedRows: selectedRows,
       };
+    }
+
+    _notify(type) {
+      const state = { ...this._buildState(), type: type || 'select' };
       this._listeners.forEach(fn => {
         try { fn(state); } catch (e) { /* silent */ }
       });
+      if (type === 'page') {
+        const pageState = this._buildState();
+        this._pageListeners.forEach(fn => {
+          try { fn(pageState); } catch (e) { /* silent */ }
+        });
+      }
     }
 
     goToPage(page) {
@@ -498,8 +514,18 @@
       };
     }
 
+    onPageChange(fn) {
+      if (typeof fn !== 'function') return;
+      this._pageListeners.push(fn);
+      return () => {
+        const idx = this._pageListeners.indexOf(fn);
+        if (idx !== -1) this._pageListeners.splice(idx, 1);
+      };
+    }
+
     destroy() {
       this._listeners = [];
+      this._pageListeners = [];
       if (this._resizeManager) this._resizeManager.destroy();
       this._$container.innerHTML = '';
       this._$container.classList.remove('tc-table-wrap');
