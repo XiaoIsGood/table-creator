@@ -70,9 +70,9 @@ const fetchData = (page, pageSize) => {
   update();
 };
 
-// 监听翻页 — onChange 给你 page，你去取数据再 setData
-table.onChange(({ page }) => {
-  fetchData(page, 10);
+// 监听翻页 — 只有 type === 'page' 时才取数据
+table.onChange(({ type, page }) => {
+  if (type === 'page') fetchData(page, 10);
 });
 
 const $output = document.getElementById('output');

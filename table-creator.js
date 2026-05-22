@@ -439,9 +439,10 @@
       this._pagination.update(this._page, totalPages);
     }
 
-    _notify() {
+    _notify(type) {
       const totalPages = this._pageSize ? Math.ceil(this._total / this._pageSize) : 1;
       const state = {
+        type: type || 'select',
         page: this._page,
         pageSize: this._pageSize,
         total: this._total,
@@ -459,7 +460,7 @@
       this._page = page;
       if (this._selectManager) this._selectManager.clear();
       this._render();
-      this._notify();
+      this._notify('page');
       return true;
     }
 
