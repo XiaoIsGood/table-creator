@@ -22,7 +22,6 @@
   --tc-border-radius: 6px;
   --tc-cell-padding: 10px 14px;
   --tc-primary-color: #4a90d9;
-  --tc-sort-icon-color: #999;
   --tc-pagination-gap: 8px;
   --tc-spacing: 16px;
   font-family: var(--tc-font-family) !important;
@@ -57,16 +56,8 @@
   overflow: hidden !important;
   text-overflow: ellipsis !important;
 }
-.tc-th--sortable { cursor: pointer !important; }
-.tc-th--sortable:hover { background: #e8e8e8 !important; }
 .tc-th--center { text-align: center !important; }
 .tc-th--right { text-align: right !important; }
-
-.tc-sort-icon {
-  display: inline-block !important; margin-left: 4px !important;
-  font-size: 11px !important; color: var(--tc-sort-icon-color) !important;
-}
-.tc-sort-icon--active { color: var(--tc-primary-color) !important; }
 
 .tc-row { border-bottom: 1px solid var(--tc-border-color) !important; }
 .tc-row:last-child { border-bottom: none !important; }
@@ -126,84 +117,11 @@
       return {
         key: col.key,
         title: col.title || col.key,
-        sortable: !!col.sortable,
         width: col.width || undefined,
         align: col.align || 'left',
         render: col.render || null,
       };
     });
-  }
-
-  // ========== DataStore ==========
-  class DataStore {
-    constructor(data, pageSize) {
-      this._original = data ? [...data] : [];
-      this._data = [...this._original];
-      this._pageSize = pageSize || 0;
-      this._sortKey = null;
-      this._sortDir = 'asc';
-      this._page = 1;
-    }
-
-    get page() { return this._page; }
-    get totalPages() {
-      if (!this._pageSize || this._pageSize <= 0) return 1;
-      return Math.ceil(this._data.length / this._pageSize);
-    }
-    get sortKey() { return this._sortKey; }
-    get sortDir() { return this._sortDir; }
-
-    getPageData() {
-      if (!this._pageSize || this._pageSize <= 0) return [...this._data];
-      const start = (this._page - 1) * this._pageSize;
-      return this._data.slice(start, start + this._pageSize);
-    }
-
-    getAllData() { return [...this._data]; }
-
-    sortBy(key) {
-      if (this._sortKey === key) {
-        this._sortDir = this._sortDir === 'asc' ? 'desc' : 'asc';
-      } else {
-        this._sortKey = key;
-        this._sortDir = 'asc';
-      }
-      this._data.sort((a, b) => {
-        const va = a[key], vb = b[key];
-        if (va == null) return 1;
-        if (vb == null) return -1;
-        if (typeof va === 'number' && typeof vb === 'number') {
-          return this._sortDir === 'asc' ? va - vb : vb - va;
-        }
-        return this._sortDir === 'asc'
-          ? String(va).localeCompare(String(vb))
-          : String(vb).localeCompare(String(va));
-      });
-      this._page = 1;
-      return { sortKey: this._sortKey, sortDir: this._sortDir };
-    }
-
-    setData(data) {
-      this._original = data ? [...data] : [];
-      this._data = [...this._original];
-      this._page = 1;
-      if (this._sortKey) this.sortBy(this._sortKey);
-    }
-
-    goToPage(page) {
-      if (page < 1 || page > this.totalPages) return false;
-      this._page = page;
-      return true;
-    }
-
-    getState() {
-      return {
-        sortKey: this._sortKey,
-        sortDir: this._sortDir,
-        page: this._page,
-        totalPages: this.totalPages,
-      };
-    }
   }
 
   // ========== SelectManager ==========
@@ -336,7 +254,7 @@
   }
 
   // ========== Renderer ==========
-  function createTable(columns, selectable, sortCallback) {
+  function createTable(columns, selectable) {
     const $table = document.createElement('table');
     $table.className = 'tc-table';
 
@@ -356,23 +274,11 @@
     columns.forEach(col => {
       const $th = document.createElement('th');
       $th.className = 'tc-th';
-      if (col.sortable) $th.classList.add('tc-th--sortable');
       if (col.align === 'center') $th.classList.add('tc-th--center');
       else if (col.align === 'right') $th.classList.add('tc-th--right');
       if (col.width) $th.style.width = col.width + 'px';
       $th.dataset.key = col.key;
       $th.textContent = col.title;
-
-      if (col.sortable) {
-        const $icon = document.createElement('span');
-        $icon.className = 'tc-sort-icon';
-        $icon.textContent = ' ▸';
-        $th.appendChild($icon);
-        $th.addEventListener('click', () => {
-          if (sortCallback) sortCallback(col.key);
-        });
-      }
-
       $headerRow.appendChild($th);
     });
 
@@ -433,24 +339,6 @@
     });
   }
 
-  function updateSortIcons($headerRow, sortKey, sortDir) {
-    const icons = $headerRow.querySelectorAll('.tc-sort-icon');
-    icons.forEach(icon => {
-      icon.classList.remove('tc-sort-icon--active');
-      icon.textContent = ' ▸';
-    });
-    if (sortKey) {
-      const $th = $headerRow.querySelector(`[data-key="${sortKey}"]`);
-      if ($th) {
-        const $icon = $th.querySelector('.tc-sort-icon');
-        if ($icon) {
-          $icon.classList.add('tc-sort-icon--active');
-          $icon.textContent = sortDir === 'asc' ? ' ▲' : ' ▼';
-        }
-      }
-    }
-  }
-
   // ========== TableCreator Class ==========
   class TableCreator {
     constructor(options = {}) {
@@ -473,12 +361,19 @@
       this._pageSize = options.pageSize || 0;
       this._selectable = !!options.selectable;
       this._resizable = !!options.resizable;
+      this._loadFn = options.load || null;
       this._listeners = [];
 
-      // State managers
-      this._store = new DataStore(options.data || [], this._pageSize);
+      // State
+      this._data = [];
+      this._page = 1;
+      this._total = 0;
+      this._loading = false;
+
       if (this._selectable) {
         this._selectManager = new SelectManager();
+        // Bind select-all handler once, stored for reuse
+        this._onSelectAll = null;
       }
       this._resizeManager = null;
 
@@ -489,16 +384,25 @@
       this._$container.innerHTML = '';
 
       // Create table structure
-      const table = createTable(
-        this._columns,
-        this._selectable,
-        (key) => this.sortBy(key)
-      );
+      const table = createTable(this._columns, this._selectable);
       this._$table = table.$table;
       this._$tbody = table.$tbody;
       this._$headerRow = table.$headerRow;
 
       this._$container.appendChild(this._$table);
+
+      // Select-all: bind handler ONCE, use event delegation
+      if (this._selectable) {
+        const $selectAll = this._$headerRow.querySelector('input[type="checkbox"]');
+        if ($selectAll) {
+          $selectAll.addEventListener('change', () => {
+            const pageKeys = this._data.map(row => row[this._columns[0].key]);
+            this._selectManager.toggleAll(pageKeys);
+            this._render();
+            this._notify();
+          });
+        }
+      }
 
       // Column resize
       if (this._resizable) {
@@ -511,78 +415,85 @@
       }
 
       // Pagination
-      this._pagination = createPagination((page) => this._goToPage(page));
+      this._pagination = createPagination((page) => this.goToPage(page));
       this._$container.appendChild(this._pagination.$el);
 
-      // Initial render
-      this._render();
+      // Load initial data
+      this._load();
     }
 
-    _render() {
-      const data = this._store.getPageData();
-      renderBody(this._$tbody, this._columns, data, this._selectable, this._selectManager);
-
-      // Update sort icons
-      updateSortIcons(this._$headerRow, this._store.sortKey, this._store.sortDir);
-
-      // Update select-all checkbox
-      if (this._selectable) {
-        const $selectAll = this._$headerRow.querySelector('input[type="checkbox"]');
-        if ($selectAll) {
-          $selectAll.checked = this._selectManager.isAllChecked();
-          $selectAll.onchange = null;
-          $selectAll.addEventListener('change', () => {
-            const pageKeys = data.map(row => row[this._columns[0].key]);
-            const allChecked = this._selectManager.toggleAll(pageKeys);
-            $selectAll.checked = allChecked;
-            this._render();
-            this._notify();
-          });
-        }
-      }
-
-      // Pagination
-      this._pagination.update(this._store.page, this._store.totalPages);
-    }
-
-    _goToPage(page) {
-      if (this._store.goToPage(page)) {
+    async _load() {
+      if (!this._loadFn || this._loading) return;
+      this._loading = true;
+      try {
+        const result = await this._loadFn({ page: this._page, pageSize: this._pageSize });
+        this._data = result.data || [];
+        this._total = result.total || 0;
+      } catch (e) {
+        this._data = [];
+        this._total = 0;
+      } finally {
+        this._loading = false;
         this._render();
         this._notify();
       }
     }
 
+    _render() {
+      renderBody(this._$tbody, this._columns, this._data, this._selectable, this._selectManager);
+
+      // Update select-all checkbox state
+      if (this._selectable) {
+        const $selectAll = this._$headerRow.querySelector('input[type="checkbox"]');
+        if ($selectAll) {
+          $selectAll.checked = this._selectManager.isAllChecked();
+        }
+      }
+
+      // Pagination
+      const totalPages = this._pageSize ? Math.ceil(this._total / this._pageSize) : 1;
+      this._pagination.update(this._page, totalPages);
+    }
+
     _notify() {
-      const state = this._store.getState();
-      state.selectedKeys = this._selectable ? this._selectManager.getSelectedKeys() : [];
+      const totalPages = this._pageSize ? Math.ceil(this._total / this._pageSize) : 1;
+      const state = {
+        page: this._page,
+        pageSize: this._pageSize,
+        total: this._total,
+        totalPages: totalPages,
+        loading: this._loading,
+        selectedKeys: this._selectable ? this._selectManager.getSelectedKeys() : [],
+      };
       this._listeners.forEach(fn => {
         try { fn(state); } catch (e) { /* silent */ }
       });
     }
 
-    sortBy(key) {
-      const result = this._store.sortBy(key);
-      this._render();
-      this._notify();
-      return result;
+    goToPage(page) {
+      const totalPages = this._pageSize ? Math.ceil(this._total / this._pageSize) : 1;
+      if (page < 1 || page > totalPages) return false;
+      this._page = page;
+      if (this._selectManager) this._selectManager.clear();
+      this._load();
+      return true;
+    }
+
+    refresh() {
+      if (this._selectManager) this._selectManager.clear();
+      this._page = 1;
+      this._load();
     }
 
     getSelected() {
       if (!this._selectManager) return [];
       const keys = this._selectManager.getSelectedKeys();
       const firstCol = this._columns[0].key;
-      return this._store.getAllData().filter(row => keys.includes(row[firstCol]));
+      return this._data.filter(row => keys.includes(row[firstCol]));
     }
 
     getData() {
-      return this._store.getPageData();
-    }
-
-    setData(data) {
-      this._store.setData(data);
-      if (this._selectManager) this._selectManager.clear();
-      this._render();
-      this._notify();
+      return [...this._data];
     }
 
     onChange(fn) {
@@ -601,10 +512,10 @@
       this._$container.classList.remove('tc-table-wrap');
     }
 
-    get page() { return this._store.page; }
-    get totalPages() { return this._store.totalPages; }
-    get sortKey() { return this._store.sortKey; }
-    get sortDir() { return this._store.sortDir; }
+    get page() { return this._page; }
+    get totalPages() { return this._pageSize ? Math.ceil(this._total / this._pageSize) : 1; }
+    get total() { return this._total; }
+    get loading() { return this._loading; }
   }
 
   // ========== Export ==========

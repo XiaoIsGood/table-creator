@@ -20,23 +20,24 @@ h1 { margin-bottom: 24px; }
 <script>
 const columns = [
   { key: 'id',     title: 'ID',    width: 60,  align: 'center' },
-  { key: 'name',   title: '姓名',   width: 120, sortable: true },
-  { key: 'age',    title: '年龄',   width: 80,  align: 'center', sortable: true },
+  { key: 'name',   title: '姓名',   width: 120 },
+  { key: 'age',    title: '年龄',   width: 80,  align: 'center' },
   { key: 'gender', title: '性别',   width: 80,  align: 'center' },
-  { key: 'city',   title: '城市',   width: 120, sortable: true },
+  { key: 'city',   title: '城市',   width: 120 },
   { key: 'email',  title: '邮箱',   width: 200 },
   { key: 'status', title: '状态',   width: 100, align: 'center',
     render: (val) => val === 'active' ? '<span style="color:#22c55e">在职</span>' : '<span style="color:#999">离职</span>' },
 ];
 
-const generateData = (count) => {
+// 模拟服务端数据（实际场景替换为 fetch 或 API 调用）
+const allData = (() => {
   const cities = ['北京', '上海', '广州', '深圳', '杭州', '成都', '武汉', '南京'];
   const genders = ['男', '女'];
   const statuses = ['active', 'inactive'];
   const surnames = ['张', '李', '王', '赵', '陈', '刘', '黄', '周'];
   const names = ['伟', '芳', '娜', '敏', '静', '强', '磊', '洋', '勇', '军'];
   const data = [];
-  for (let i = 1; i <= count; i++) {
+  for (let i = 1; i <= 50; i++) {
     data.push({
       id: i,
       name: surnames[Math.floor(Math.random() * surnames.length)] + names[Math.floor(Math.random() * names.length)],
@@ -48,24 +49,31 @@ const generateData = (count) => {
     });
   }
   return data;
-};
+})();
 
 const table = new TableCreator({
   container: '#table',
   columns: columns,
-  data: generateData(50),
   pageSize: 10,
   selectable: true,
   resizable: true,
+  // 外部加载函数 — 模拟异步请求
+  load: async ({ page, pageSize }) => {
+    // 模拟网络延迟
+    await new Promise(r => setTimeout(r, 300));
+    const start = (page - 1) * pageSize;
+    return { data: allData.slice(start, start + pageSize), total: allData.length };
+  },
 });
 
 const $output = document.getElementById('output');
 const update = () => {
   const state = {
     page: table.page,
+    pageSize: table.pageSize,
+    total: table.total,
     totalPages: table.totalPages,
-    sortKey: table.sortKey,
-    sortDir: table.sortDir,
+    loading: table.loading,
     selectedCount: table.getSelected().length,
   };
   $output.textContent = JSON.stringify(state, null, 2);
