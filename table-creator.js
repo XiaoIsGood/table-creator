@@ -206,4 +206,79 @@
     }
   }
 
+  // ========== SelectManager ==========
+  class SelectManager {
+    constructor() {
+      this._selected = new Set();
+      this._allChecked = false;
+    }
+
+    toggle(key) {
+      if (this._selected.has(key)) {
+        this._selected.delete(key);
+      } else {
+        this._selected.add(key);
+      }
+      return this._selected.has(key);
+    }
+
+    toggleAll(pageKeys) {
+      if (this._allChecked || this._selected.size > 0) {
+        this._selected.clear();
+        this._allChecked = false;
+      } else {
+        pageKeys.forEach(k => this._selected.add(k));
+        this._allChecked = true;
+      }
+      return this._allChecked;
+    }
+
+    isSelected(key) { return this._selected.has(key); }
+    isAllChecked() { return this._allChecked; }
+    clear() { this._selected.clear(); this._allChecked = false; }
+    getSelectedKeys() { return [...this._selected]; }
+  }
+
+  // ========== PaginationBar ==========
+  function createPagination(onChange) {
+    const $el = document.createElement('div');
+    $el.className = 'tc-pagination';
+
+    const $prev = document.createElement('button');
+    $prev.className = 'tc-page-btn';
+    $prev.textContent = '上一页';
+
+    const $info = document.createElement('span');
+    $info.className = 'tc-page-info';
+
+    const $next = document.createElement('button');
+    $next.className = 'tc-page-btn';
+    $next.textContent = '下一页';
+
+    $el.appendChild($prev);
+    $el.appendChild($info);
+    $el.appendChild($next);
+
+    let _page = 1, _total = 1;
+
+    $prev.addEventListener('click', () => {
+      if (_page > 1 && onChange) onChange(_page - 1);
+    });
+    $next.addEventListener('click', () => {
+      if (_page < _total && onChange) onChange(_page + 1);
+    });
+
+    return {
+      $el,
+      update(page, total) {
+        _page = page;
+        _total = total;
+        $info.textContent = total > 0 ? `${page} / ${total}` : '1 / 1';
+        $prev.disabled = page <= 1;
+        $next.disabled = page >= total;
+        $el.style.display = total <= 1 ? 'none' : '';
+      },
+    };
+  }
+
 })();
