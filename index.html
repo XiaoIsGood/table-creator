@@ -29,7 +29,7 @@ const columns = [
     render: (val) => val === 'active' ? '<span style="color:#22c55e">在职</span>' : '<span style="color:#999">离职</span>' },
 ];
 
-// 模拟服务端数据（实际场景替换为 fetch 或 API 调用）
+// 模拟服务端数据
 const allData = (() => {
   const cities = ['北京', '上海', '广州', '深圳', '杭州', '成都', '武汉', '南京'];
   const genders = ['男', '女'];
@@ -51,34 +51,44 @@ const allData = (() => {
   return data;
 })();
 
+// 初始化 — 空数据
 const table = new TableCreator({
   container: '#table',
   columns: columns,
   pageSize: 10,
   selectable: true,
   resizable: true,
-  // 外部加载函数 — 模拟异步请求
-  load: async ({ page, pageSize }) => {
-    // 模拟网络延迟
-    await new Promise(r => setTimeout(r, 300));
-    const start = (page - 1) * pageSize;
-    return { data: allData.slice(start, start + pageSize), total: allData.length };
-  },
+});
+
+// 获取数据并推入表格
+const fetchData = (page, pageSize) => {
+  const start = (page - 1) * pageSize;
+  table.setData({
+    data: allData.slice(start, start + pageSize),
+    total: allData.length,
+  });
+  update();
+};
+
+// 监听翻页 — onChange 给你 page，你去取数据再 setData
+table.onChange(({ page }) => {
+  fetchData(page, 10);
 });
 
 const $output = document.getElementById('output');
 const update = () => {
   const state = {
     page: table.page,
-    pageSize: table.pageSize,
-    total: table.total,
     totalPages: table.totalPages,
-    loading: table.loading,
+    total: table.total,
     selectedCount: table.getSelected().length,
   };
   $output.textContent = JSON.stringify(state, null, 2);
 };
 table.onChange(update);
+
+// 加载首页
+fetchData(1, 10);
 update();
 </script>
 </body>

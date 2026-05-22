@@ -293,7 +293,7 @@
     return { $table, $thead, $tbody, $headerRow };
   }
 
-  function renderBody($tbody, columns, data, selectable, selectManager) {
+  function renderBody($tbody, columns, data, selectable, selectManager, onSelect) {
     $tbody.innerHTML = '';
 
     data.forEach(row => {
@@ -312,6 +312,7 @@
           const selected = selectManager.toggle(rowKey);
           if (selected) $tr.classList.add('tc-row--selected');
           else $tr.classList.remove('tc-row--selected');
+          if (onSelect) onSelect();
         });
         $td.appendChild($cb);
         $tr.appendChild($td);
@@ -361,19 +362,15 @@
       this._pageSize = options.pageSize || 0;
       this._selectable = !!options.selectable;
       this._resizable = !!options.resizable;
-      this._loadFn = options.load || null;
       this._listeners = [];
 
-      // State
+      // State — starts empty
       this._data = [];
       this._page = 1;
       this._total = 0;
-      this._loading = false;
 
       if (this._selectable) {
         this._selectManager = new SelectManager();
-        // Bind select-all handler once, stored for reuse
-        this._onSelectAll = null;
       }
       this._resizeManager = null;
 
@@ -391,7 +388,7 @@
 
       this._$container.appendChild(this._$table);
 
-      // Select-all: bind handler ONCE, use event delegation
+      // Select-all: bind handler once
       if (this._selectable) {
         const $selectAll = this._$headerRow.querySelector('input[type="checkbox"]');
         if ($selectAll) {
@@ -418,39 +415,26 @@
       this._pagination = createPagination((page) => this.goToPage(page));
       this._$container.appendChild(this._pagination.$el);
 
-      // Load initial data
-      this._load();
+      // Render empty shell
+      this._render();
     }
 
-    async _load() {
-      if (!this._loadFn || this._loading) return;
-      this._loading = true;
-      try {
-        const result = await this._loadFn({ page: this._page, pageSize: this._pageSize });
-        this._data = result.data || [];
-        this._total = result.total || 0;
-      } catch (e) {
-        this._data = [];
-        this._total = 0;
-      } finally {
-        this._loading = false;
-        this._render();
-        this._notify();
-      }
+    setData(data) {
+      this._data = data.data || [];
+      this._total = data.total || 0;
+      if (this._selectManager) this._selectManager.clear();
+      this._render();
     }
 
     _render() {
-      renderBody(this._$tbody, this._columns, this._data, this._selectable, this._selectManager);
+      renderBody(this._$tbody, this._columns, this._data, this._selectable, this._selectManager,
+        () => this._notify());
 
-      // Update select-all checkbox state
       if (this._selectable) {
         const $selectAll = this._$headerRow.querySelector('input[type="checkbox"]');
-        if ($selectAll) {
-          $selectAll.checked = this._selectManager.isAllChecked();
-        }
+        if ($selectAll) $selectAll.checked = this._selectManager.isAllChecked();
       }
 
-      // Pagination
       const totalPages = this._pageSize ? Math.ceil(this._total / this._pageSize) : 1;
       this._pagination.update(this._page, totalPages);
     }
@@ -462,7 +446,6 @@
         pageSize: this._pageSize,
         total: this._total,
         totalPages: totalPages,
-        loading: this._loading,
         selectedKeys: this._selectable ? this._selectManager.getSelectedKeys() : [],
       };
       this._listeners.forEach(fn => {
@@ -472,17 +455,12 @@
 
     goToPage(page) {
       const totalPages = this._pageSize ? Math.ceil(this._total / this._pageSize) : 1;
-      if (page < 1 || page > totalPages) return false;
+      if (page < 1 || (totalPages > 0 && page > totalPages)) return false;
       this._page = page;
       if (this._selectManager) this._selectManager.clear();
-      this._load();
+      this._render();
+      this._notify();
       return true;
-    }
-
-    refresh() {
-      if (this._selectManager) this._selectManager.clear();
-      this._page = 1;
-      this._load();
     }
 
     getSelected() {
@@ -515,7 +493,6 @@
     get page() { return this._page; }
     get totalPages() { return this._pageSize ? Math.ceil(this._total / this._pageSize) : 1; }
     get total() { return this._total; }
-    get loading() { return this._loading; }
   }
 
   // ========== Export ==========
