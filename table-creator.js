@@ -153,6 +153,7 @@
 
     isSelected(key) { return this._selected.has(key); }
     isAllChecked() { return this._allChecked; }
+    countSelected(keys) { return keys.filter(k => this._selected.has(k)).length; }
     clear() { this._selected.clear(); this._allChecked = false; }
     getSelectedKeys() { return [...this._selected]; }
   }
@@ -388,15 +389,23 @@
 
       this._$container.appendChild(this._$table);
 
-      // Select-all: bind handler once
+      // Select-all: three-state checkbox (unchecked / indeterminate / checked)
       if (this._selectable) {
         const $selectAll = this._$headerRow.querySelector('input[type="checkbox"]');
         if ($selectAll) {
-          $selectAll.addEventListener('change', () => {
+          $selectAll.addEventListener('click', (e) => {
             const pageKeys = this._data.map(row => row[this._columns[0].key]);
-            this._selectManager.toggleAll(pageKeys);
+            const selectedCount = this._selectManager.countSelected(pageKeys);
+            // If some or all selected → deselect all; if none selected → select all
+            if (selectedCount > 0) {
+              pageKeys.forEach(k => this._selectManager._selected.delete(k));
+              this._selectManager._allChecked = false;
+            } else {
+              pageKeys.forEach(k => this._selectManager._selected.add(k));
+              this._selectManager._allChecked = true;
+            }
             this._render();
-            this._notify();
+            this._notify('select');
           });
         }
       }
@@ -432,7 +441,12 @@
 
       if (this._selectable) {
         const $selectAll = this._$headerRow.querySelector('input[type="checkbox"]');
-        if ($selectAll) $selectAll.checked = this._selectManager.isAllChecked();
+        if ($selectAll) {
+          const pageKeys = this._data.map(row => row[this._columns[0].key]);
+          const count = this._selectManager.countSelected(pageKeys);
+          $selectAll.checked = count > 0 && count === pageKeys.length;
+          $selectAll.indeterminate = count > 0 && count < pageKeys.length;
+        }
       }
 
       const totalPages = this._pageSize ? Math.ceil(this._total / this._pageSize) : 1;
