@@ -432,6 +432,10 @@
     setData(data) {
       this._data = data.data || [];
       this._total = data.total || 0;
+      this._render();
+    }
+
+    clearSelection() {
       if (this._selectManager) this._selectManager.clear();
       this._render();
     }
