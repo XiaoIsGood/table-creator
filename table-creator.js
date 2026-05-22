@@ -619,6 +619,9 @@
     get total() {
       return this._total;
     }
+    get pageSize() {
+      return this._pageSize;
+    }
   }
 
   // ========== Export ==========
