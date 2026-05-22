@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TableCreator Demo</title>
+<style>
+body { max-width: 960px; margin: 40px auto; padding: 0 20px; font-family: system-ui, sans-serif; }
+h1 { margin-bottom: 24px; }
+.tc-table-wrap { max-width: 100%; }
+</style>
+</head>
+<body>
+<h1>TableCreator Demo</h1>
+<div id="table" class="tc-table-wrap"></div>
+
+<pre id="output" style="margin-top:24px;padding:16px;background:#f5f5f5;border-radius:6px;font-size:13px;"></pre>
+
+<script src="table-creator.js"></script>
+<script>
+const columns = [
+  { key: 'id',     title: 'ID',    width: 60,  align: 'center' },
+  { key: 'name',   title: '姓名',   width: 120, sortable: true },
+  { key: 'age',    title: '年龄',   width: 80,  align: 'center', sortable: true },
+  { key: 'gender', title: '性别',   width: 80,  align: 'center' },
+  { key: 'city',   title: '城市',   width: 120, sortable: true },
+  { key: 'email',  title: '邮箱',   width: 200 },
+  { key: 'status', title: '状态',   width: 100, align: 'center',
+    render: (val) => val === 'active' ? '<span style="color:#22c55e">在职</span>' : '<span style="color:#999">离职</span>' },
+];
+
+const generateData = (count) => {
+  const cities = ['北京', '上海', '广州', '深圳', '杭州', '成都', '武汉', '南京'];
+  const genders = ['男', '女'];
+  const statuses = ['active', 'inactive'];
+  const surnames = ['张', '李', '王', '赵', '陈', '刘', '黄', '周'];
+  const names = ['伟', '芳', '娜', '敏', '静', '强', '磊', '洋', '勇', '军'];
+  const data = [];
+  for (let i = 1; i <= count; i++) {
+    data.push({
+      id: i,
+      name: surnames[Math.floor(Math.random() * surnames.length)] + names[Math.floor(Math.random() * names.length)],
+      age: 22 + Math.floor(Math.random() * 40),
+      gender: genders[Math.floor(Math.random() * 2)],
+      city: cities[Math.floor(Math.random() * cities.length)],
+      email: 'user' + i + '@example.com',
+      status: statuses[Math.floor(Math.random() * 2)],
+    });
+  }
+  return data;
+};
+
+const table = new TableCreator({
+  container: '#table',
+  columns: columns,
+  data: generateData(50),
+  pageSize: 10,
+  selectable: true,
+  resizable: true,
+});
+
+const $output = document.getElementById('output');
+const update = () => {
+  const state = {
+    page: table.page,
+    totalPages: table.totalPages,
+    sortKey: table.sortKey,
+    sortDir: table.sortDir,
+    selectedCount: table.getSelected().length,
+  };
+  $output.textContent = JSON.stringify(state, null, 2);
+};
+table.onChange(update);
+update();
+</script>
+</body>
+</html>
