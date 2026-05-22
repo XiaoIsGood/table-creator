@@ -71,6 +71,7 @@
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
+  text-align: center !important;
 }
 .tc-row:last-child .tc-td { border-bottom: none !important; }
 .tc-td--center { text-align: center !important; }
