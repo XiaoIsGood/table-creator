@@ -451,4 +451,121 @@
     }
   }
 
+  // ========== TableCreator Class ==========
+  class TableCreator {
+    constructor(options = {}) {
+      // Resolve container
+      const container = options.container;
+      if (typeof container === 'string') {
+        this._$container = document.querySelector(container);
+        if (!this._$container) throw new Error(`Container not found: "${container}"`);
+      } else if (container instanceof HTMLElement) {
+        this._$container = container;
+      } else {
+        throw new Error('Container must be a CSS selector or DOM element');
+      }
+      this._$container.classList.add('tc-table-wrap');
+
+      injectStyles();
+
+      // Config
+      this._columns = normalizeColumns(options.columns || []);
+      this._pageSize = options.pageSize || 0;
+      this._selectable = !!options.selectable;
+      this._resizable = !!options.resizable;
+      this._listeners = [];
+
+      // State managers
+      this._store = new DataStore(options.data || [], this._pageSize);
+      if (this._selectable) {
+        this._selectManager = new SelectManager();
+      }
+      this._resizeManager = null;
+
+      this._init();
+    }
+
+    _init() {
+      this._$container.innerHTML = '';
+
+      // Create table structure
+      const table = createTable(
+        this._columns,
+        this._selectable,
+        (key) => this.sortBy(key)
+      );
+      this._$table = table.$table;
+      this._$tbody = table.$tbody;
+      this._$headerRow = table.$headerRow;
+
+      this._$container.appendChild(this._$table);
+
+      // Column resize
+      if (this._resizable) {
+        this._resizeManager = new ResizeManager((key, width) => {
+          const col = this._columns.find(c => c.key === key);
+          if (col) col.width = width;
+        });
+        const ths = this._$headerRow.querySelectorAll('th:not(.tc-th--select)');
+        ths.forEach(th => this._resizeManager.attach(th));
+      }
+
+      // Pagination
+      this._pagination = createPagination((page) => this._goToPage(page));
+      this._$container.appendChild(this._pagination.$el);
+
+      // Initial render
+      this._render();
+    }
+
+    _render() {
+      const data = this._store.getPageData();
+      renderBody(this._$tbody, this._columns, data, this._selectable, this._selectManager);
+
+      // Update sort icons
+      updateSortIcons(this._$headerRow, this._store.sortKey, this._store.sortDir);
+
+      // Update select-all checkbox
+      if (this._selectable) {
+        const $selectAll = this._$headerRow.querySelector('input[type="checkbox"]');
+        if ($selectAll) {
+          $selectAll.checked = this._selectManager.isAllChecked();
+          $selectAll.onchange = null;
+          $selectAll.addEventListener('change', () => {
+            const pageKeys = data.map(row => row[this._columns[0].key]);
+            const allChecked = this._selectManager.toggleAll(pageKeys);
+            $selectAll.checked = allChecked;
+            this._render();
+            this._notify();
+          });
+        }
+      }
+
+      // Pagination
+      this._pagination.update(this._store.page, this._store.totalPages);
+    }
+
+    _goToPage(page) {
+      if (this._store.goToPage(page)) {
+        this._render();
+        this._notify();
+      }
+    }
+
+    _notify() {
+      const state = this._store.getState();
+      state.selectedKeys = this._selectable ? this._selectManager.getSelectedKeys() : [];
+      this._listeners.forEach(fn => {
+        try { fn(state); } catch (e) { /* silent */ }
+      });
+    }
+
+    sortBy(key) {
+      const result = this._store.sortBy(key);
+      this._render();
+      this._notify();
+      return result;
+    }
+  }
+
 })();
