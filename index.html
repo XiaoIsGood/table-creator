@@ -124,8 +124,14 @@
       });
 
       const $output = document.getElementById('output');
-      const update = (state) => {
-        $output.textContent = JSON.stringify(state, null, 2);
+      const update = () => {
+        $output.textContent = JSON.stringify({
+          page: table.page,
+          totalPages: table.totalPages,
+          total: table.total,
+          data: table.getData(),
+          selectedRows: table.getSelected(),
+        }, null, 2);
       };
       table.onChange(update);
 
