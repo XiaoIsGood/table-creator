@@ -86,7 +86,7 @@
 
 /* Pagination */
 .tc-pagination {
-  display: flex !important; align-items: center !important; justify-content: center !important;
+  display: flex !important; align-items: center !important; justify-content: flex-end !important;
   gap: var(--tc-pagination-gap) !important; margin-top: var(--tc-spacing) !important;
 }
 .tc-page-btn {
@@ -98,6 +98,12 @@
 .tc-page-btn:hover { background: var(--tc-header-bg) !important; }
 .tc-page-btn:disabled { opacity: 0.4 !important; cursor: not-allowed !important; }
 .tc-page-info { font-size: var(--tc-font-size) !important; color: #666 !important; }
+.tc-page-jump { display: flex !important; gap: 4px !important; margin-left: 8px !important; }
+.tc-page-jump-input {
+  width: 50px !important; padding: 4px 6px !important; text-align: center !important;
+  border: 1px solid var(--tc-border-color) !important; border-radius: 4px !important;
+  font-size: var(--tc-font-size) !important;
+}
 
 /* Action buttons */
 .tc-action-btn {
@@ -197,9 +203,23 @@
     $next.className = 'tc-page-btn';
     $next.textContent = '下一页';
 
+    const $jumpWrap = document.createElement('span');
+    $jumpWrap.className = 'tc-page-jump';
+    const $jumpInput = document.createElement('input');
+    $jumpInput.type = 'number';
+    $jumpInput.className = 'tc-page-jump-input';
+    $jumpInput.placeholder = '页';
+    $jumpInput.min = 1;
+    const $jumpBtn = document.createElement('button');
+    $jumpBtn.className = 'tc-page-btn';
+    $jumpBtn.textContent = '跳转';
+    $jumpWrap.appendChild($jumpInput);
+    $jumpWrap.appendChild($jumpBtn);
+
     $el.appendChild($prev);
     $el.appendChild($info);
     $el.appendChild($next);
+    $el.appendChild($jumpWrap);
 
     let _page = 1,
       _total = 1;
@@ -210,6 +230,13 @@
     $next.addEventListener('click', () => {
       if (_page < _total && onChange) onChange(_page + 1);
     });
+    $jumpBtn.addEventListener('click', () => {
+      const p = parseInt($jumpInput.value);
+      if (p >= 1 && p <= _total && p !== _page && onChange) onChange(p);
+    });
+    $jumpInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') $jumpBtn.click();
+    });
 
     return {
       $el,
@@ -219,6 +246,9 @@
         $info.textContent = total > 0 ? `${page} / ${total}` : '1 / 1';
         $prev.disabled = page <= 1;
         $next.disabled = page >= total;
+        $jumpInput.max = total;
+        $jumpInput.value = '';
+        $jumpInput.placeholder = `${page} / ${total}`;
         $el.style.display = total <= 1 ? 'none' : '';
       },
     };
