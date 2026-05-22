@@ -123,7 +123,8 @@
   function normalizeColumns(columns) {
     if (!Array.isArray(columns)) throw new Error('Columns must be an array');
     return columns.map((col, i) => {
-      if (!col.key) throw new Error(`Column at index ${i} is missing a "key" property`);
+      if (!col.key)
+        throw new Error(`Column at index ${i} is missing a "key" property`);
       return {
         key: col.key,
         title: col.title || col.key,
@@ -156,17 +157,28 @@
         this._selected.clear();
         this._allChecked = false;
       } else {
-        pageKeys.forEach(k => this._selected.add(k));
+        pageKeys.forEach((k) => this._selected.add(k));
         this._allChecked = true;
       }
       return this._allChecked;
     }
 
-    isSelected(key) { return this._selected.has(key); }
-    isAllChecked() { return this._allChecked; }
-    countSelected(keys) { return keys.filter(k => this._selected.has(k)).length; }
-    clear() { this._selected.clear(); this._allChecked = false; }
-    getSelectedKeys() { return [...this._selected]; }
+    isSelected(key) {
+      return this._selected.has(key);
+    }
+    isAllChecked() {
+      return this._allChecked;
+    }
+    countSelected(keys) {
+      return keys.filter((k) => this._selected.has(k)).length;
+    }
+    clear() {
+      this._selected.clear();
+      this._allChecked = false;
+    }
+    getSelectedKeys() {
+      return [...this._selected];
+    }
   }
 
   // ========== PaginationBar ==========
@@ -189,7 +201,8 @@
     $el.appendChild($info);
     $el.appendChild($next);
 
-    let _page = 1, _total = 1;
+    let _page = 1,
+      _total = 1;
 
     $prev.addEventListener('click', () => {
       if (_page > 1 && onChange) onChange(_page - 1);
@@ -283,7 +296,7 @@
       $headerRow.appendChild($th);
     }
 
-    columns.forEach(col => {
+    columns.forEach((col) => {
       const $th = document.createElement('th');
       $th.className = 'tc-th';
       if (col.align === 'center') $th.classList.add('tc-th--center');
@@ -305,10 +318,17 @@
     return { $table, $thead, $tbody, $headerRow };
   }
 
-  function renderBody($tbody, columns, data, selectable, selectManager, onSelect) {
+  function renderBody(
+    $tbody,
+    columns,
+    data,
+    selectable,
+    selectManager,
+    onSelect,
+  ) {
     $tbody.innerHTML = '';
 
-    data.forEach(row => {
+    data.forEach((row) => {
       const $tr = document.createElement('tr');
       $tr.className = 'tc-row';
 
@@ -333,14 +353,14 @@
         }
       }
 
-      columns.forEach(col => {
+      columns.forEach((col) => {
         const $td = document.createElement('td');
         $td.className = 'tc-td';
         if (col.align === 'center') $td.classList.add('tc-td--center');
         else if (col.align === 'right') $td.classList.add('tc-td--right');
 
         if (col.actions) {
-          col.actions.forEach(action => {
+          col.actions.forEach((action) => {
             const $btn = document.createElement('button');
             $btn.className = 'tc-action-btn';
             if (action.class) $btn.classList.add(action.class);
@@ -371,7 +391,8 @@
       const container = options.container;
       if (typeof container === 'string') {
         this._$container = document.querySelector(container);
-        if (!this._$container) throw new Error(`Container not found: "${container}"`);
+        if (!this._$container)
+          throw new Error(`Container not found: "${container}"`);
       } else if (container instanceof HTMLElement) {
         this._$container = container;
       } else {
@@ -415,17 +436,19 @@
 
       // Select-all: three-state checkbox (unchecked / indeterminate / checked)
       if (this._selectable) {
-        const $selectAll = this._$headerRow.querySelector('input[type="checkbox"]');
+        const $selectAll = this._$headerRow.querySelector(
+          'input[type="checkbox"]',
+        );
         if ($selectAll) {
           $selectAll.addEventListener('click', (e) => {
-            const pageKeys = this._data.map(row => row[this._columns[0].key]);
+            const pageKeys = this._data.map((row) => row[this._columns[0].key]);
             const selectedCount = this._selectManager.countSelected(pageKeys);
             // If some or all selected → deselect all; if none selected → select all
             if (selectedCount > 0) {
-              pageKeys.forEach(k => this._selectManager._selected.delete(k));
+              pageKeys.forEach((k) => this._selectManager._selected.delete(k));
               this._selectManager._allChecked = false;
             } else {
-              pageKeys.forEach(k => this._selectManager._selected.add(k));
+              pageKeys.forEach((k) => this._selectManager._selected.add(k));
               this._selectManager._allChecked = true;
             }
             this._render();
@@ -437,20 +460,20 @@
       // Column resize
       if (this._resizable) {
         this._resizeManager = new ResizeManager((key, width) => {
-          const col = this._columns.find(c => c.key === key);
+          const col = this._columns.find((c) => c.key === key);
           if (col) col.width = width;
         });
         const ths = this._$headerRow.querySelectorAll('th:not(.tc-th--select)');
-        ths.forEach(th => this._resizeManager.attach(th));
+        ths.forEach((th) => this._resizeManager.attach(th));
       }
 
       // Pagination
       this._pagination = createPagination((page) => this.goToPage(page));
       this._$container.appendChild(this._pagination.$el);
 
-      // Render empty shell, then trigger initial page load
+      // Render empty shell, then trigger initial page load (deferred to allow callbacks to register)
       this._render();
-      this._notify('page');
+      setTimeout(() => this._notify('page'), 0);
     }
 
     setData(data) {
@@ -465,28 +488,47 @@
     }
 
     _render() {
-      renderBody(this._$tbody, this._columns, this._data, this._selectable, this._selectManager,
-        () => { this._render(); this._notify('select'); });
+      renderBody(
+        this._$tbody,
+        this._columns,
+        this._data,
+        this._selectable,
+        this._selectManager,
+        () => {
+          this._render();
+          this._notify('select');
+        },
+      );
 
       if (this._selectable) {
-        const $selectAll = this._$headerRow.querySelector('input[type="checkbox"]');
+        const $selectAll = this._$headerRow.querySelector(
+          'input[type="checkbox"]',
+        );
         if ($selectAll) {
-          const pageKeys = this._data.map(row => row[this._columns[0].key]);
+          const pageKeys = this._data.map((row) => row[this._columns[0].key]);
           const count = this._selectManager.countSelected(pageKeys);
           $selectAll.checked = count > 0 && count === pageKeys.length;
           $selectAll.indeterminate = count > 0 && count < pageKeys.length;
         }
       }
 
-      const totalPages = this._pageSize ? Math.ceil(this._total / this._pageSize) : 1;
+      const totalPages = this._pageSize
+        ? Math.ceil(this._total / this._pageSize)
+        : 1;
       this._pagination.update(this._page, totalPages);
     }
 
     _buildState() {
-      const totalPages = this._pageSize ? Math.ceil(this._total / this._pageSize) : 1;
-      const selectedKeys = this._selectable ? this._selectManager.getSelectedKeys() : [];
+      const totalPages = this._pageSize
+        ? Math.ceil(this._total / this._pageSize)
+        : 1;
+      const selectedKeys = this._selectable
+        ? this._selectManager.getSelectedKeys()
+        : [];
       const selectedRows = this._selectable
-        ? this._data.filter(row => selectedKeys.includes(row[this._columns[0].key]))
+        ? this._data.filter((row) =>
+            selectedKeys.includes(row[this._columns[0].key]),
+          )
         : [];
       return {
         page: this._page,
@@ -501,19 +543,29 @@
 
     _notify(type) {
       const state = { ...this._buildState(), type: type || 'select' };
-      this._listeners.forEach(fn => {
-        try { fn(state); } catch (e) { /* silent */ }
+      this._listeners.forEach((fn) => {
+        try {
+          fn(state);
+        } catch (e) {
+          /* silent */
+        }
       });
       if (type === 'page') {
         const pageState = this._buildState();
-        this._pageListeners.forEach(fn => {
-          try { fn(pageState); } catch (e) { /* silent */ }
+        this._pageListeners.forEach((fn) => {
+          try {
+            fn(pageState);
+          } catch (e) {
+            /* silent */
+          }
         });
       }
     }
 
     goToPage(page) {
-      const totalPages = this._pageSize ? Math.ceil(this._total / this._pageSize) : 1;
+      const totalPages = this._pageSize
+        ? Math.ceil(this._total / this._pageSize)
+        : 1;
       if (page < 1 || (totalPages > 0 && page > totalPages)) return false;
       this._page = page;
       this._render();
@@ -525,7 +577,7 @@
       if (!this._selectManager) return [];
       const keys = this._selectManager.getSelectedKeys();
       const firstCol = this._columns[0].key;
-      return this._data.filter(row => keys.includes(row[firstCol]));
+      return this._data.filter((row) => keys.includes(row[firstCol]));
     }
 
     getData() {
@@ -558,9 +610,15 @@
       this._$container.classList.remove('tc-table-wrap');
     }
 
-    get page() { return this._page; }
-    get totalPages() { return this._pageSize ? Math.ceil(this._total / this._pageSize) : 1; }
-    get total() { return this._total; }
+    get page() {
+      return this._page;
+    }
+    get totalPages() {
+      return this._pageSize ? Math.ceil(this._total / this._pageSize) : 1;
+    }
+    get total() {
+      return this._total;
+    }
   }
 
   // ========== Export ==========
@@ -569,5 +627,4 @@
   } else {
     window.TableCreator = TableCreator;
   }
-
 })();
