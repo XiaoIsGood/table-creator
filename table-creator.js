@@ -488,7 +488,6 @@
       const totalPages = this._pageSize ? Math.ceil(this._total / this._pageSize) : 1;
       if (page < 1 || (totalPages > 0 && page > totalPages)) return false;
       this._page = page;
-      if (this._selectManager) this._selectManager.clear();
       this._render();
       this._notify('page');
       return true;
