@@ -437,7 +437,7 @@
 
     _render() {
       renderBody(this._$tbody, this._columns, this._data, this._selectable, this._selectManager,
-        () => this._notify());
+        () => { this._render(); this._notify('select'); });
 
       if (this._selectable) {
         const $selectAll = this._$headerRow.querySelector('input[type="checkbox"]');
