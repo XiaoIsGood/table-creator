@@ -566,6 +566,52 @@
       this._notify();
       return result;
     }
+
+    getSelected() {
+      if (!this._selectManager) return [];
+      const keys = this._selectManager.getSelectedKeys();
+      const firstCol = this._columns[0].key;
+      return this._store.getAllData().filter(row => keys.includes(row[firstCol]));
+    }
+
+    getData() {
+      return this._store.getPageData();
+    }
+
+    setData(data) {
+      this._store.setData(data);
+      if (this._selectManager) this._selectManager.clear();
+      this._render();
+      this._notify();
+    }
+
+    onChange(fn) {
+      if (typeof fn !== 'function') return;
+      this._listeners.push(fn);
+      return () => {
+        const idx = this._listeners.indexOf(fn);
+        if (idx !== -1) this._listeners.splice(idx, 1);
+      };
+    }
+
+    destroy() {
+      this._listeners = [];
+      if (this._resizeManager) this._resizeManager.destroy();
+      this._$container.innerHTML = '';
+      this._$container.classList.remove('tc-table-wrap');
+    }
+
+    get page() { return this._store.page; }
+    get totalPages() { return this._store.totalPages; }
+    get sortKey() { return this._store.sortKey; }
+    get sortDir() { return this._store.sortDir; }
+  }
+
+  // ========== Export ==========
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = TableCreator;
+  } else {
+    window.TableCreator = TableCreator;
   }
 
 })();
