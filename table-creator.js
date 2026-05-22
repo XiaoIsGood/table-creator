@@ -88,9 +88,10 @@
 
 /* Pagination */
 .tc-pagination {
-  display: flex !important; align-items: center !important; justify-content: flex-end !important;
+  display: flex !important; align-items: center !important; justify-content: space-between !important;
   gap: var(--tc-pagination-gap) !important; margin-top: var(--tc-spacing) !important;
 }
+.tc-page-total { font-size: var(--tc-font-size) !important; color: #666 !important; }
 .tc-page-btn {
   padding: 6px 14px !important; background: #fff !important;
   border: 1px solid var(--tc-border-color) !important; border-radius: 4px !important;
@@ -194,6 +195,15 @@
     const $el = document.createElement('div');
     $el.className = 'tc-pagination';
 
+    const $total = document.createElement('span');
+    $total.className = 'tc-page-total';
+    $total.textContent = '共 0 条';
+
+    const $right = document.createElement('div');
+    $right.style.display = 'flex';
+    $right.style.alignItems = 'center';
+    $right.style.gap = 'var(--tc-pagination-gap)';
+
     const $prev = document.createElement('button');
     $prev.className = 'tc-page-btn';
     $prev.textContent = '上一页';
@@ -217,10 +227,13 @@
     $jumpWrap.appendChild($jumpInput);
     $jumpWrap.appendChild($jumpBtn);
 
-    $el.appendChild($prev);
-    $el.appendChild($info);
-    $el.appendChild($next);
-    $el.appendChild($jumpWrap);
+    $right.appendChild($prev);
+    $right.appendChild($info);
+    $right.appendChild($next);
+    $right.appendChild($jumpWrap);
+
+    $el.appendChild($total);
+    $el.appendChild($right);
 
     let _page = 1,
       _total = 1;
@@ -241,15 +254,16 @@
 
     return {
       $el,
-      update(page, total) {
+      update(page, totalPages, totalCount) {
         _page = page;
-        _total = total;
-        $info.textContent = total > 0 ? `${page} / ${total}` : '1 / 1';
+        _total = totalPages;
+        $total.textContent = totalCount > 0 ? `共 ${totalCount} 条` : '';
+        $info.textContent = totalPages > 0 ? `${page} / ${totalPages}` : '1 / 1';
         $prev.disabled = page <= 1;
-        $next.disabled = page >= total;
-        $jumpInput.max = total;
+        $next.disabled = page >= totalPages;
+        $jumpInput.max = totalPages;
         $jumpInput.value = '';
-        $el.style.display = total <= 1 ? 'none' : '';
+        $el.style.display = totalPages <= 1 ? 'none' : '';
       },
     };
   }
@@ -545,7 +559,7 @@
       const totalPages = this._pageSize
         ? Math.ceil(this._total / this._pageSize)
         : 1;
-      this._pagination.update(this._page, totalPages);
+      this._pagination.update(this._page, totalPages, this._total);
     }
 
     _buildState() {
