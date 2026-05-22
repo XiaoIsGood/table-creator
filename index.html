@@ -59,7 +59,13 @@
           width: 130,
           actions: [
             { text: '编辑', onClick: (row) => alert('编辑: ' + row.name) },
-            { text: '删除', onClick: (row) => { if (confirm('删除 ' + row.name + '?')) alert('已删除'); }, class: 'tc-btn--danger' },
+            {
+              text: '删除',
+              onClick: (row) => {
+                if (confirm('删除 ' + row.name + '?')) alert('已删除');
+              },
+              class: 'tc-btn--danger',
+            },
           ],
         },
       ];
@@ -129,23 +135,27 @@
 
       // 监听翻页 — 仅页面变化触发
       table.onPageChange(({ page, pageSize }) => {
+        console.log('Page changed: ', page, pageSize);
         fetchData(page, pageSize);
       });
 
       const $output = document.getElementById('output');
       const update = () => {
-        $output.textContent = JSON.stringify({
-          page: table.page,
-          totalPages: table.totalPages,
-          total: table.total,
-          data: table.getData(),
-          selectedRows: table.getSelected(),
-        }, null, 2);
+        $output.textContent = JSON.stringify(
+          {
+            page: table.page,
+            totalPages: table.totalPages,
+            total: table.total,
+            data: table.getData(),
+            selectedRows: table.getSelected(),
+          },
+          null,
+          2,
+        );
       };
       table.onChange(update);
 
-      // 加载首页
-      fetchData(1, 10);
+      // 初始化时 onPageChange 自动触发一次，无需手动 fetchData
     </script>
   </body>
 </html>

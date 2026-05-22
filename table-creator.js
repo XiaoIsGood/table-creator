@@ -448,8 +448,9 @@
       this._pagination = createPagination((page) => this.goToPage(page));
       this._$container.appendChild(this._pagination.$el);
 
-      // Render empty shell
+      // Render empty shell, then trigger initial page load
       this._render();
+      this._notify('page');
     }
 
     setData(data) {
