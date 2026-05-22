@@ -29,14 +29,11 @@
     resizable: true,
   });
 
-  // 加载首页数据
-  table.setData({ data: [...], total: 100 });
-
-  // 监听翻页
-  table.onPageChange(({ page, pageSize }) => {
-    fetch(`/api?page=${page}&size=${pageSize}`)
-      .then(r => r.json())
-      .then(json => table.setData({ data: json.data, total: json.total }));
+  // 初始化时自动触发一次，之后翻页也会触发
+  table.onPageChange(async ({ page, pageSize }) => {
+    const res = await fetch(`/api?page=${page}&size=${pageSize}`);
+    const json = await res.json();
+    table.setData({ data: json.data, total: json.total });
   });
 </script>
 ```
@@ -51,6 +48,7 @@ columns: [
     width: 120,        // 初始列宽(px)，不设则自动分配
     align: 'center',   // 对齐: left(默认) / center / right
     render: (val, row) => `<b>${val}</b>`,  // 自定义渲染，支持 HTML 字符串
+    actions: [...],    // 操作按钮，见下方说明
   },
 ]
 ```
@@ -85,6 +83,7 @@ columns: [
 | 属性 | 类型 | 说明 |
 |------|------|------|
 | `page` | Number | 当前页码 |
+| `pageSize` | Number | 每页条数 |
 | `totalPages` | Number | 总页数 |
 | `total` | Number | 总数据量 |
 
@@ -117,20 +116,40 @@ table.onPageChange(({ page, pageSize, totalPages, data, selectedKeys, selectedRo
 
 ## 使用模式
 
-初始化后数据为空，你通过 `setData` 推入数据：
+初始化时 `onPageChange` 自动触发一次，省去手动加载首页：
 
 ```js
 const table = new TableCreator({ container: '#table', columns, pageSize: 10 });
 
-// 加载首页
-table.setData({ data: page1Data, total: 100 });
-
-// 翻页时重新取数据
-table.onPageChange(({ page, pageSize }) => {
-  const json = await fetch(`/api?page=${page}&size=${pageSize}`).then(r => r.json());
+// 初始化时自动调用，翻页时也会调用
+table.onPageChange(async ({ page, pageSize }) => {
+  const res = await fetch(`/api?page=${page}&size=${pageSize}`);
+  const json = await res.json();
   table.setData({ data: json.data, total: json.total });
 });
 ```
+
+## 操作列（actions）
+
+通过 `actions` 配置操作按钮，`onClick` 直接接收行数据：
+
+```js
+{
+  key: 'actions',
+  title: '操作',
+  width: 130,
+  actions: [
+    { text: '编辑', onClick: (row) => openEditModal(row) },
+    { text: '删除', onClick: (row) => deleteRow(row.id), class: 'tc-btn--danger' },
+  ],
+}
+```
+
+| 属性 | 类型 | 说明 |
+|------|------|------|
+| text | String | 按钮文字 |
+| onClick | Function | 点击回调，参数为行数据 |
+| class | String | 可选的附加样式类 |
 
 ## 自定义样式
 
