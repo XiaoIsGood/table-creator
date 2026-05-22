@@ -281,4 +281,58 @@
     };
   }
 
+  // ========== ResizeManager ==========
+  class ResizeManager {
+    constructor(onResize) {
+      this._onResize = onResize;
+      this._startX = 0;
+      this._startWidth = 0;
+      this._currentTh = null;
+      this._onMouseMove = null;
+      this._onMouseUp = null;
+    }
+
+    attach(th) {
+      const handle = document.createElement('div');
+      handle.className = 'tc-resize-handle';
+      handle.addEventListener('mousedown', (e) => this._startResize(e, th));
+      th.appendChild(handle);
+    }
+
+    _startResize(e, th) {
+      e.preventDefault();
+      this._currentTh = th;
+      this._startX = e.clientX;
+      this._startWidth = th.offsetWidth;
+
+      this._onMouseMove = (e) => this._doResize(e);
+      this._onMouseUp = () => this._stopResize();
+      document.addEventListener('mousemove', this._onMouseMove);
+      document.addEventListener('mouseup', this._onMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    }
+
+    _doResize(e) {
+      if (!this._currentTh) return;
+      const delta = e.clientX - this._startX;
+      const newWidth = Math.max(40, this._startWidth + delta);
+      this._currentTh.style.width = newWidth + 'px';
+      if (this._onResize) this._onResize(this._currentTh.dataset.key, newWidth);
+    }
+
+    _stopResize() {
+      document.removeEventListener('mousemove', this._onMouseMove);
+      document.removeEventListener('mouseup', this._onMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      this._currentTh = null;
+    }
+
+    destroy() {
+      document.removeEventListener('mousemove', this._onMouseMove);
+      document.removeEventListener('mouseup', this._onMouseUp);
+    }
+  }
+
 })();
