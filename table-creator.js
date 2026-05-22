@@ -47,7 +47,7 @@
   background: var(--tc-header-bg) !important;
   color: var(--tc-header-color) !important;
   font-weight: var(--tc-header-weight) !important;
-  text-align: left !important;
+  text-align: center !important;
   padding: var(--tc-cell-padding) !important;
   border-bottom: 2px solid var(--tc-border-color) !important;
   position: relative !important;
