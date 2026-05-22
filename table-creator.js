@@ -56,7 +56,7 @@
   overflow: hidden !important;
   text-overflow: ellipsis !important;
 }
-.tc-th--select { overflow: visible !important; text-overflow: clip !important; }
+.tc-thead .tc-th--select { overflow: visible !important; text-overflow: clip !important; }
 .tc-th--center { text-align: center !important; }
 .tc-th--right { text-align: right !important; }
 
