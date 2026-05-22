@@ -210,7 +210,6 @@
     const $jumpInput = document.createElement('input');
     $jumpInput.type = 'number';
     $jumpInput.className = 'tc-page-jump-input';
-    $jumpInput.placeholder = '页';
     $jumpInput.min = 1;
     const $jumpBtn = document.createElement('button');
     $jumpBtn.className = 'tc-page-btn';
@@ -250,7 +249,6 @@
         $next.disabled = page >= total;
         $jumpInput.max = total;
         $jumpInput.value = '';
-        $jumpInput.placeholder = `${page} / ${total}`;
         $el.style.display = total <= 1 ? 'none' : '';
       },
     };
