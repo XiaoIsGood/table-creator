@@ -99,6 +99,15 @@
 .tc-page-btn:disabled { opacity: 0.4 !important; cursor: not-allowed !important; }
 .tc-page-info { font-size: var(--tc-font-size) !important; color: #666 !important; }
 
+/* Action buttons */
+.tc-action-btn {
+  padding: 3px 10px !important; margin: 0 2px !important;
+  background: #fff !important; border: 1px solid var(--tc-border-color) !important;
+  border-radius: 3px !important; cursor: pointer !important;
+  font-size: 12px !important; color: var(--tc-primary-color) !important;
+}
+.tc-action-btn:hover { background: var(--tc-header-bg) !important; }
+
 /* Checkbox in select column */
 .tc-th input[type="checkbox"],
 .tc-td input[type="checkbox"] {
@@ -121,6 +130,7 @@
         width: col.width || undefined,
         align: col.align || 'left',
         render: col.render || null,
+        actions: col.actions || null,
       };
     });
   }
@@ -329,7 +339,19 @@
         if (col.align === 'center') $td.classList.add('tc-td--center');
         else if (col.align === 'right') $td.classList.add('tc-td--right');
 
-        if (col.render) {
+        if (col.actions) {
+          col.actions.forEach(action => {
+            const $btn = document.createElement('button');
+            $btn.className = 'tc-action-btn';
+            if (action.class) $btn.classList.add(action.class);
+            $btn.textContent = action.text || action.name;
+            $btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              if (typeof action.onClick === 'function') action.onClick(row);
+            });
+            $td.appendChild($btn);
+          });
+        } else if (col.render) {
           $td.innerHTML = col.render(row[col.key], row);
         } else {
           $td.textContent = row[col.key] != null ? row[col.key] : '';

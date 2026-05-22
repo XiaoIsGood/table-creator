@@ -53,6 +53,15 @@
               ? '<span style="color:#22c55e">在职</span>'
               : '<span style="color:#999">离职</span>',
         },
+        {
+          key: 'actions',
+          title: '操作',
+          width: 130,
+          actions: [
+            { text: '编辑', onClick: (row) => alert('编辑: ' + row.name) },
+            { text: '删除', onClick: (row) => { if (confirm('删除 ' + row.name + '?')) alert('已删除'); }, class: 'tc-btn--danger' },
+          ],
+        },
       ];
 
       // 模拟服务端数据
@@ -119,8 +128,8 @@
       };
 
       // 监听翻页 — 仅页面变化触发
-      table.onPageChange(({ page }) => {
-        fetchData(page, 10);
+      table.onPageChange(({ page, pageSize }) => {
+        fetchData(page, pageSize);
       });
 
       const $output = document.getElementById('output');
