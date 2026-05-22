@@ -134,4 +134,76 @@
     });
   }
 
+  // ========== DataStore ==========
+  class DataStore {
+    constructor(data, pageSize) {
+      this._original = data ? [...data] : [];
+      this._data = [...this._original];
+      this._pageSize = pageSize || 0;
+      this._sortKey = null;
+      this._sortDir = 'asc';
+      this._page = 1;
+    }
+
+    get page() { return this._page; }
+    get totalPages() {
+      if (!this._pageSize || this._pageSize <= 0) return 1;
+      return Math.ceil(this._data.length / this._pageSize);
+    }
+    get sortKey() { return this._sortKey; }
+    get sortDir() { return this._sortDir; }
+
+    getPageData() {
+      if (!this._pageSize || this._pageSize <= 0) return [...this._data];
+      const start = (this._page - 1) * this._pageSize;
+      return this._data.slice(start, start + this._pageSize);
+    }
+
+    getAllData() { return [...this._data]; }
+
+    sortBy(key) {
+      if (this._sortKey === key) {
+        this._sortDir = this._sortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        this._sortKey = key;
+        this._sortDir = 'asc';
+      }
+      this._data.sort((a, b) => {
+        const va = a[key], vb = b[key];
+        if (va == null) return 1;
+        if (vb == null) return -1;
+        if (typeof va === 'number' && typeof vb === 'number') {
+          return this._sortDir === 'asc' ? va - vb : vb - va;
+        }
+        return this._sortDir === 'asc'
+          ? String(va).localeCompare(String(vb))
+          : String(vb).localeCompare(String(va));
+      });
+      this._page = 1;
+      return { sortKey: this._sortKey, sortDir: this._sortDir };
+    }
+
+    setData(data) {
+      this._original = data ? [...data] : [];
+      this._data = [...this._original];
+      this._page = 1;
+      if (this._sortKey) this.sortBy(this._sortKey);
+    }
+
+    goToPage(page) {
+      if (page < 1 || page > this.totalPages) return false;
+      this._page = page;
+      return true;
+    }
+
+    getState() {
+      return {
+        sortKey: this._sortKey,
+        sortDir: this._sortDir,
+        page: this._page,
+        totalPages: this.totalPages,
+      };
+    }
+  }
+
 })();
