@@ -335,4 +335,120 @@
     }
   }
 
+  // ========== Renderer ==========
+  function createTable(columns, selectable, sortCallback) {
+    const $table = document.createElement('table');
+    $table.className = 'tc-table';
+
+    // Thead
+    const $thead = document.createElement('thead');
+    $thead.className = 'tc-thead';
+    const $headerRow = document.createElement('tr');
+
+    if (selectable) {
+      const $th = document.createElement('th');
+      $th.className = 'tc-th tc-th--select';
+      $th.style.width = '40px';
+      $th.innerHTML = '<input type="checkbox">';
+      $headerRow.appendChild($th);
+    }
+
+    columns.forEach(col => {
+      const $th = document.createElement('th');
+      $th.className = 'tc-th';
+      if (col.sortable) $th.classList.add('tc-th--sortable');
+      if (col.align === 'center') $th.classList.add('tc-th--center');
+      else if (col.align === 'right') $th.classList.add('tc-th--right');
+      if (col.width) $th.style.width = col.width + 'px';
+      $th.dataset.key = col.key;
+      $th.textContent = col.title;
+
+      if (col.sortable) {
+        const $icon = document.createElement('span');
+        $icon.className = 'tc-sort-icon';
+        $icon.textContent = ' ▸';
+        $th.appendChild($icon);
+        $th.addEventListener('click', () => {
+          if (sortCallback) sortCallback(col.key);
+        });
+      }
+
+      $headerRow.appendChild($th);
+    });
+
+    $thead.appendChild($headerRow);
+    $table.appendChild($thead);
+
+    // Tbody
+    const $tbody = document.createElement('tbody');
+    $tbody.className = 'tc-tbody';
+    $table.appendChild($tbody);
+
+    return { $table, $thead, $tbody, $headerRow };
+  }
+
+  function renderBody($tbody, columns, data, selectable, selectManager) {
+    $tbody.innerHTML = '';
+
+    data.forEach(row => {
+      const $tr = document.createElement('tr');
+      $tr.className = 'tc-row';
+
+      if (selectable) {
+        const $td = document.createElement('td');
+        $td.className = 'tc-td tc-td--select';
+        $td.style.width = '40px';
+        const rowKey = row[columns[0].key];
+        const $cb = document.createElement('input');
+        $cb.type = 'checkbox';
+        $cb.checked = selectManager ? selectManager.isSelected(rowKey) : false;
+        $cb.addEventListener('change', () => {
+          const selected = selectManager.toggle(rowKey);
+          if (selected) $tr.classList.add('tc-row--selected');
+          else $tr.classList.remove('tc-row--selected');
+        });
+        $td.appendChild($cb);
+        $tr.appendChild($td);
+        if (selectManager && selectManager.isSelected(rowKey)) {
+          $tr.classList.add('tc-row--selected');
+        }
+      }
+
+      columns.forEach(col => {
+        const $td = document.createElement('td');
+        $td.className = 'tc-td';
+        if (col.align === 'center') $td.classList.add('tc-td--center');
+        else if (col.align === 'right') $td.classList.add('tc-td--right');
+
+        if (col.render) {
+          $td.innerHTML = col.render(row[col.key], row);
+        } else {
+          $td.textContent = row[col.key] != null ? row[col.key] : '';
+        }
+
+        $tr.appendChild($td);
+      });
+
+      $tbody.appendChild($tr);
+    });
+  }
+
+  function updateSortIcons($headerRow, sortKey, sortDir) {
+    const icons = $headerRow.querySelectorAll('.tc-sort-icon');
+    icons.forEach(icon => {
+      icon.classList.remove('tc-sort-icon--active');
+      icon.textContent = ' ▸';
+    });
+    if (sortKey) {
+      const $th = $headerRow.querySelector(`[data-key="${sortKey}"]`);
+      if ($th) {
+        const $icon = $th.querySelector('.tc-sort-icon');
+        if ($icon) {
+          $icon.classList.add('tc-sort-icon--active');
+          $icon.textContent = sortDir === 'asc' ? ' ▲' : ' ▼';
+        }
+      }
+    }
+  }
+
 })();
