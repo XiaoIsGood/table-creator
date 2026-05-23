@@ -43,6 +43,8 @@
   table-layout: fixed !important;
 }
 
+.tc-table-scroll { max-height: var(--tc-max-height, 400px) !important; overflow-y: auto !important; }
+
 .tc-thead .tc-th {
   background: var(--tc-header-bg) !important;
   color: var(--tc-header-color) !important;
@@ -56,6 +58,7 @@
   overflow: hidden !important;
   text-overflow: ellipsis !important;
 }
+.tc-thead { position: sticky !important; top: 0 !important; z-index: 10 !important; }
 .tc-thead .tc-th--select,
 .tc-tbody .tc-td--select { overflow: visible !important; text-overflow: clip !important; }
 .tc-th--center { text-align: center !important; }
@@ -451,6 +454,7 @@
       this._pageSize = options.pageSize || 0;
       this._selectable = !!options.selectable;
       this._resizable = !!options.resizable;
+      this._maxHeight = options.maxHeight || 0;
       this._listeners = [];
       this._pageListeners = [];
 
@@ -476,7 +480,15 @@
       this._$tbody = table.$tbody;
       this._$headerRow = table.$headerRow;
 
-      this._$container.appendChild(this._$table);
+      if (this._maxHeight) {
+        const $scrollWrap = document.createElement('div');
+        $scrollWrap.className = 'tc-table-scroll';
+        $scrollWrap.style.setProperty('--tc-max-height', this._maxHeight + 'px');
+        $scrollWrap.appendChild(this._$table);
+        this._$container.appendChild($scrollWrap);
+      } else {
+        this._$container.appendChild(this._$table);
+      }
 
       // Select-all: three-state checkbox (unchecked / indeterminate / checked)
       if (this._selectable) {
