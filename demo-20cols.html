@@ -1,98 +1,173 @@
 <!doctype html>
 <html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TableCreator — 20字段示例</title>
-<style>
-body { max-width: 100%; margin: 40px auto; padding: 0 20px; font-family: system-ui, sans-serif; }
-h1 { margin-bottom: 24px; }
-</style>
-</head>
-<body>
-<h1>TableCreator — 20 字段示例</h1>
-<p style="color:#999;margin-bottom:16px">向下滚动页面，表头固定在顶部</p>
-<div id="table" class="tc-table-wrap"></div>
-<div style="height:800px"></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TableCreator — 20字段示例</title>
+    <style>
+      body {
+        max-width: 100%;
+        margin: 40px auto;
+        padding: 0 20px;
+        font-family: system-ui, sans-serif;
+      }
+      h1 {
+        margin-bottom: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>TableCreator — 20 字段示例</h1>
+    <p style="color: #999; margin-bottom: 16px">向下滚动页面，表头固定在顶部</p>
+    <div id="table" class="tc-table-wrap"></div>
+    <div style="height: 800px"></div>
 
-<script src="table-creator.js"></script>
-<script>
-const columns = [
-  { key: 'id', title: 'ID', width: 60, align: 'center', fixed: true },
-  { key: 'name', title: '姓名', width: 80, fixed: true },
-  { key: 'gender', title: '性别', width: 60, align: 'center' },
-  { key: 'age', title: '年龄', width: 60, align: 'center' },
-  { key: 'nation', title: '民族', width: 70, align: 'center' },
-  { key: 'birthday', title: '出生日期', width: 110, align: 'center' },
-  { key: 'idCard', title: '身份证号', width: 180 },
-  { key: 'phone', title: '手机号', width: 120 },
-  { key: 'email', title: '邮箱', width: 180 },
-  { key: 'education', title: '学历', width: 80, align: 'center' },
-  { key: 'school', title: '毕业院校', width: 140 },
-  { key: 'major', title: '专业', width: 120 },
-  { key: 'company', title: '工作单位', width: 160 },
-  { key: 'position', title: '职务', width: 100 },
-  { key: 'entryDate', title: '入职日期', width: 110, align: 'center' },
-  { key: 'salary', title: '月薪', width: 80, align: 'right' },
-  { key: 'address', title: '通讯地址', width: 200 },
-  { key: 'zipCode', title: '邮编', width: 80, align: 'center' },
-  { key: 'emergencyContact', title: '紧急联系人', width: 100 },
-  { key: 'emergencyPhone', title: '紧急电话', width: 120 },
-];
+    <script src="table-creator.js"></script>
+    <script>
+      const columns = [
+        { key: 'id', title: 'ID', width: 60, align: 'center', fixed: true },
+        { key: 'name', title: '姓名', width: 80, fixed: true },
+        {
+          key: 'gender',
+          title: '性别',
+          width: 60,
+          align: 'center',
+          fixed: true,
+        },
+        { key: 'age', title: '年龄', width: 60, align: 'center' },
+        { key: 'nation', title: '民族', width: 70, align: 'center' },
+        { key: 'birthday', title: '出生日期', width: 110, align: 'center' },
+        { key: 'idCard', title: '身份证号', width: 180 },
+        { key: 'phone', title: '手机号', width: 120 },
+        { key: 'email', title: '邮箱', width: 180 },
+        { key: 'education', title: '学历', width: 80, align: 'center' },
+        { key: 'school', title: '毕业院校', width: 140 },
+        { key: 'major', title: '专业', width: 120 },
+        { key: 'company', title: '工作单位', width: 160 },
+        { key: 'position', title: '职务', width: 100 },
+        { key: 'entryDate', title: '入职日期', width: 110, align: 'center' },
+        { key: 'salary', title: '月薪', width: 80, align: 'right' },
+        { key: 'address', title: '通讯地址', width: 200 },
+        { key: 'zipCode', title: '邮编', width: 80, align: 'center' },
+        { key: 'emergencyContact', title: '紧急联系人', width: 100 },
+        { key: 'emergencyPhone', title: '紧急电话', width: 120 },
+      ];
 
-const allData = (() => {
-  const surnames = ['张', '李', '王', '赵', '陈', '刘', '黄', '周', '吴', '徐'];
-  const names = ['伟', '芳', '娜', '敏', '静', '强', '磊', '洋', '勇', '军'];
-  const genders = ['男', '女'];
-  const nations = ['汉族', '回族', '满族', '蒙古族'];
-  const educations = ['本科', '硕士', '博士', '大专'];
-  const schools = ['北京大学', '清华大学', '复旦大学', '浙江大学', '上海交大', '南京大学', '武汉大学'];
-  const majors = ['计算机科学', '软件工程', '数据科学', '电子信息', '机械工程', '金融学'];
-  const companies = ['字节跳动', '腾讯科技', '阿里巴巴', '华为技术', '百度在线', '美团点评'];
-  const positions = ['工程师', '产品经理', '设计师', '运营专员', '数据分析师'];
-  const cities = ['北京市朝阳区', '上海市浦东新区', '广州市天河区', '深圳市南山区', '杭州市西湖区'];
-  const data = [];
-  for (let i = 1; i <= 50; i++) {
-    data.push({
-      id: i,
-      name: surnames[Math.floor(Math.random() * 10)] + names[Math.floor(Math.random() * 10)],
-      gender: genders[Math.floor(Math.random() * 2)],
-      age: 22 + Math.floor(Math.random() * 35),
-      nation: nations[Math.floor(Math.random() * 4)],
-      birthday: `${1960 + Math.floor(Math.random() * 40)}-${String(1 + Math.floor(Math.random() * 12)).padStart(2,'0')}-${String(1 + Math.floor(Math.random() * 28)).padStart(2,'0')}`,
-      idCard: `320${Math.floor(Math.random() * 9)}82${String(Math.floor(Math.random() * 10000000000000)).padStart(12,'0')}`,
-      phone: `1${3 + Math.floor(Math.random() * 7)}${String(Math.floor(Math.random() * 1000000000)).padStart(9,'0')}`,
-      email: `user${i}@example.com`,
-      education: educations[Math.floor(Math.random() * 4)],
-      school: schools[Math.floor(Math.random() * 7)],
-      major: majors[Math.floor(Math.random() * 6)],
-      company: companies[Math.floor(Math.random() * 6)],
-      position: positions[Math.floor(Math.random() * 5)],
-      entryDate: `${2018 + Math.floor(Math.random() * 6)}-${String(1 + Math.floor(Math.random() * 12)).padStart(2,'0')}`,
-      salary: 8000 + Math.floor(Math.random() * 32000),
-      address: cities[Math.floor(Math.random() * 5)] + `${100 + Math.floor(Math.random() * 900)}号`,
-      zipCode: String(100000 + Math.floor(Math.random() * 900000)),
-      emergencyContact: surnames[Math.floor(Math.random() * 10)] + names[Math.floor(Math.random() * 10)],
-      emergencyPhone: `1${3 + Math.floor(Math.random() * 7)}${String(Math.floor(Math.random() * 1000000000)).padStart(9,'0')}`,
-    });
-  }
-  return data;
-})();
+      const allData = (() => {
+        const surnames = [
+          '张',
+          '李',
+          '王',
+          '赵',
+          '陈',
+          '刘',
+          '黄',
+          '周',
+          '吴',
+          '徐',
+        ];
+        const names = [
+          '伟',
+          '芳',
+          '娜',
+          '敏',
+          '静',
+          '强',
+          '磊',
+          '洋',
+          '勇',
+          '军',
+        ];
+        const genders = ['男', '女'];
+        const nations = ['汉族', '回族', '满族', '蒙古族'];
+        const educations = ['本科', '硕士', '博士', '大专'];
+        const schools = [
+          '北京大学',
+          '清华大学',
+          '复旦大学',
+          '浙江大学',
+          '上海交大',
+          '南京大学',
+          '武汉大学',
+        ];
+        const majors = [
+          '计算机科学',
+          '软件工程',
+          '数据科学',
+          '电子信息',
+          '机械工程',
+          '金融学',
+        ];
+        const companies = [
+          '字节跳动',
+          '腾讯科技',
+          '阿里巴巴',
+          '华为技术',
+          '百度在线',
+          '美团点评',
+        ];
+        const positions = [
+          '工程师',
+          '产品经理',
+          '设计师',
+          '运营专员',
+          '数据分析师',
+        ];
+        const cities = [
+          '北京市朝阳区',
+          '上海市浦东新区',
+          '广州市天河区',
+          '深圳市南山区',
+          '杭州市西湖区',
+        ];
+        const data = [];
+        for (let i = 1; i <= 50; i++) {
+          data.push({
+            id: i,
+            name:
+              surnames[Math.floor(Math.random() * 10)] +
+              names[Math.floor(Math.random() * 10)],
+            gender: genders[Math.floor(Math.random() * 2)],
+            age: 22 + Math.floor(Math.random() * 35),
+            nation: nations[Math.floor(Math.random() * 4)],
+            birthday: `${1960 + Math.floor(Math.random() * 40)}-${String(1 + Math.floor(Math.random() * 12)).padStart(2, '0')}-${String(1 + Math.floor(Math.random() * 28)).padStart(2, '0')}`,
+            idCard: `320${Math.floor(Math.random() * 9)}82${String(Math.floor(Math.random() * 10000000000000)).padStart(12, '0')}`,
+            phone: `1${3 + Math.floor(Math.random() * 7)}${String(Math.floor(Math.random() * 1000000000)).padStart(9, '0')}`,
+            email: `user${i}@example.com`,
+            education: educations[Math.floor(Math.random() * 4)],
+            school: schools[Math.floor(Math.random() * 7)],
+            major: majors[Math.floor(Math.random() * 6)],
+            company: companies[Math.floor(Math.random() * 6)],
+            position: positions[Math.floor(Math.random() * 5)],
+            entryDate: `${2018 + Math.floor(Math.random() * 6)}-${String(1 + Math.floor(Math.random() * 12)).padStart(2, '0')}`,
+            salary: 8000 + Math.floor(Math.random() * 32000),
+            address:
+              cities[Math.floor(Math.random() * 5)] +
+              `${100 + Math.floor(Math.random() * 900)}号`,
+            zipCode: String(100000 + Math.floor(Math.random() * 900000)),
+            emergencyContact:
+              surnames[Math.floor(Math.random() * 10)] +
+              names[Math.floor(Math.random() * 10)],
+            emergencyPhone: `1${3 + Math.floor(Math.random() * 7)}${String(Math.floor(Math.random() * 1000000000)).padStart(9, '0')}`,
+          });
+        }
+        return data;
+      })();
 
-const table = new TableCreator({
-  container: '#table',
-  columns: columns,
-  pageSize: 10,
-  resizable: true,
-});
+      const table = new TableCreator({
+        container: '#table',
+        columns: columns,
+        pageSize: 10,
+        resizable: true,
+      });
 
-table.onPageChange(({ page, pageSize }) => {
-  const start = (page - 1) * pageSize;
-  table.setData({
-    data: allData.slice(start, start + pageSize),
-    total: allData.length,
-  });
-});
-</script>
-</body>
+      table.onPageChange(({ page, pageSize }) => {
+        const start = (page - 1) * pageSize;
+        table.setData({
+          data: allData.slice(start, start + pageSize),
+          total: allData.length,
+        });
+      });
+    </script>
+  </body>
 </html>
