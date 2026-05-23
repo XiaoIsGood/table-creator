@@ -33,15 +33,12 @@
 .tc-table-wrap *::before,
 .tc-table-wrap *::after { box-sizing: border-box !important; }
 
-.tc-table-wrap {
-  border: 1px solid var(--tc-border-color) !important;
-  border-radius: var(--tc-border-radius) !important;
-  overflow: hidden !important;
-}
 .tc-table {
   width: 100% !important;
   border-collapse: separate !important;
   border-spacing: 0 !important;
+  border: 1px solid var(--tc-border-color) !important;
+  border-radius: var(--tc-border-radius) !important;
   table-layout: fixed !important;
 }
 
