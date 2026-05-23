@@ -59,8 +59,10 @@
 .tc-thead { position: sticky !important; top: 0 !important; z-index: 10 !important; }
 
 /* Frozen columns */
-.tc-thead .tc-th--fixed { position: sticky !important; z-index: 11 !important; background: var(--tc-header-bg) !important; }
-.tc-td--fixed { position: sticky !important; z-index: 2 !important; background: #fff !important; }
+.tc-thead .tc-th--fixed { position: sticky !important; z-index: 11 !important; background: var(--tc-header-bg) !important; border-right: none !important; }
+.tc-thead .tc-th--last-fixed { border-right: 1px solid var(--tc-border-color) !important; }
+.tc-td--fixed { position: sticky !important; z-index: 2 !important; background: #fff !important; border-right: none !important; }
+.tc-td--last-fixed { border-right: 1px solid var(--tc-border-color) !important; }
 .tc-row:hover .tc-td--fixed { background: var(--tc-row-hover-bg) !important; }
 .tc-row--selected .tc-td--fixed { background: var(--tc-row-selected-bg) !important; }
 .tc-row--selected:hover .tc-td--fixed { background: #d4e8fc !important; }
@@ -143,11 +145,13 @@
   function normalizeColumns(columns) {
     if (!Array.isArray(columns)) throw new Error('Columns must be an array');
     let stickyOffset = 0;
+    const fixedCols = columns.filter(c => c.fixed);
     return columns.map((col, i) => {
       if (!col.key)
         throw new Error(`Column at index ${i} is missing a "key" property`);
       const fixed = !!col.fixed;
       const width = col.width || undefined;
+      const lastFixed = fixed && fixedCols[fixedCols.length - 1] === col;
       const result = {
         key: col.key,
         title: col.title || col.key,
@@ -157,6 +161,7 @@
         actions: col.actions || null,
         fixed: fixed,
         _stickyLeft: fixed ? stickyOffset : undefined,
+        _lastFixed: lastFixed,
       };
       if (fixed && width) stickyOffset += width;
       return result;
@@ -368,7 +373,9 @@
       if (col.width) $th.style.width = col.width + 'px';
       if (col.fixed && col._stickyLeft != null) {
         $th.classList.add('tc-th--fixed');
+        if (col._lastFixed) $th.classList.add('tc-th--last-fixed');
         $th.style.left = (selectOffset + col._stickyLeft) + 'px';
+        if (col.width) { $th.style.minWidth = col.width + 'px'; $th.style.maxWidth = col.width + 'px'; }
       }
       $th.dataset.key = col.key;
       $th.textContent = col.title;
@@ -429,7 +436,9 @@
         else if (col.align === 'right') $td.classList.add('tc-td--right');
         if (col.fixed && col._stickyLeft != null) {
           $td.classList.add('tc-td--fixed');
+          if (col._lastFixed) $td.classList.add('tc-td--last-fixed');
           $td.style.left = (selectOffset + col._stickyLeft) + 'px';
+          if (col.width) { $td.style.minWidth = col.width + 'px'; $td.style.maxWidth = col.width + 'px'; }
         }
 
         if (col.actions) {
