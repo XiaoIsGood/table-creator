@@ -59,10 +59,11 @@
 .tc-thead { position: sticky !important; top: 0 !important; z-index: 10 !important; }
 
 /* Frozen columns */
-.tc-thead .tc-th--fixed,
-.tc-tbody .tc-td--fixed { overflow: visible !important; }
-.tc-thead .tc-th--fixed { background: var(--tc-header-bg) !important; }
-.tc-tbody .tc-td--fixed { background-color: #fff !important; }
+.tc-thead .tc-th--fixed { position: sticky !important; z-index: 11 !important; background: var(--tc-header-bg) !important; }
+.tc-td--fixed { position: sticky !important; z-index: 2 !important; background: #fff !important; }
+.tc-row:hover .tc-td--fixed { background: var(--tc-row-hover-bg) !important; }
+.tc-row--selected .tc-td--fixed { background: var(--tc-row-selected-bg) !important; }
+.tc-row--selected:hover .tc-td--fixed { background: #d4e8fc !important; }
 .tc-tbody .tc-row:hover .tc-td--fixed { background: var(--tc-row-hover-bg) !important; }
 .tc-tbody .tc-row--selected .tc-td--fixed { background: var(--tc-row-selected-bg) !important; }
 .tc-tbody .tc-row--selected:hover .tc-td--fixed { background: #d4e8fc !important; }
@@ -365,19 +366,12 @@
       if (col.align === 'center') $th.classList.add('tc-th--center');
       else if (col.align === 'right') $th.classList.add('tc-th--right');
       if (col.width) $th.style.width = col.width + 'px';
-      $th.dataset.key = col.key;
-
       if (col.fixed && col._stickyLeft != null) {
         $th.classList.add('tc-th--fixed');
-        const $inner = document.createElement('div');
-        $inner.style.position = 'sticky';
-        $inner.style.left = (selectOffset + col._stickyLeft) + 'px';
-        $inner.style.zIndex = '11';
-        $inner.textContent = col.title;
-        $th.appendChild($inner);
-      } else {
-        $th.textContent = col.title;
+        $th.style.left = (selectOffset + col._stickyLeft) + 'px';
       }
+      $th.dataset.key = col.key;
+      $th.textContent = col.title;
       $headerRow.appendChild($th);
     });
 
@@ -435,17 +429,8 @@
         else if (col.align === 'right') $td.classList.add('tc-td--right');
         if (col.fixed && col._stickyLeft != null) {
           $td.classList.add('tc-td--fixed');
+          $td.style.left = (selectOffset + col._stickyLeft) + 'px';
         }
-
-        const $inner = col.fixed ? document.createElement('div') : null;
-        if ($inner) {
-          $inner.style.position = 'sticky';
-          $inner.style.left = (selectOffset + col._stickyLeft) + 'px';
-          $inner.style.zIndex = '2';
-          $td.appendChild($inner);
-        }
-
-        const $target = $inner || $td;
 
         if (col.actions) {
           col.actions.forEach((action) => {
@@ -457,12 +442,12 @@
               e.stopPropagation();
               if (typeof action.onClick === 'function') action.onClick(row);
             });
-            $target.appendChild($btn);
+            $td.appendChild($btn);
           });
         } else if (col.render) {
-          $target.innerHTML = col.render(row[col.key], row);
+          $td.innerHTML = col.render(row[col.key], row);
         } else {
-          $target.textContent = row[col.key] != null ? row[col.key] : '';
+          $td.textContent = row[col.key] != null ? row[col.key] : '';
         }
 
         $tr.appendChild($td);
