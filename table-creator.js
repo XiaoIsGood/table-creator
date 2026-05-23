@@ -61,8 +61,8 @@
 /* Frozen columns */
 .tc-thead .tc-th--fixed,
 .tc-tbody .tc-td--fixed { position: sticky !important; z-index: 2 !important; }
-.tc-thead .tc-th--fixed { background: var(--tc-header-bg) !important; z-index: 11 !important; }
-.tc-tbody .tc-td--fixed { background: #fff !important; overflow: visible !important; }
+.tc-thead .tc-th--fixed { background: var(--tc-header-bg) !important; z-index: 11 !important; box-shadow: 2px 0 4px rgba(0,0,0,0.1) !important; }
+.tc-tbody .tc-td--fixed { background-color: #fff !important; overflow: visible !important; box-shadow: 2px 0 4px rgba(0,0,0,0.08) !important; }
 .tc-tbody .tc-row:hover .tc-td--fixed { background: var(--tc-row-hover-bg) !important; }
 .tc-tbody .tc-row--selected .tc-td--fixed { background: var(--tc-row-selected-bg) !important; }
 .tc-tbody .tc-row--selected:hover .tc-td--fixed { background: #d4e8fc !important; }
