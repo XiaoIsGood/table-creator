@@ -132,17 +132,24 @@
   // ========== Column Normalizer ==========
   function normalizeColumns(columns) {
     if (!Array.isArray(columns)) throw new Error('Columns must be an array');
+    let stickyOffset = 0;
     return columns.map((col, i) => {
       if (!col.key)
         throw new Error(`Column at index ${i} is missing a "key" property`);
-      return {
+      const fixed = !!col.fixed;
+      const width = col.width || undefined;
+      const result = {
         key: col.key,
         title: col.title || col.key,
-        width: col.width || undefined,
+        width: width,
         align: col.align || 'left',
         render: col.render || null,
         actions: col.actions || null,
+        fixed: fixed,
+        _stickyLeft: fixed ? stickyOffset : undefined,
       };
+      if (fixed && width) stickyOffset += width;
+      return result;
     });
   }
 
@@ -347,6 +354,11 @@
       if (col.align === 'center') $th.classList.add('tc-th--center');
       else if (col.align === 'right') $th.classList.add('tc-th--right');
       if (col.width) $th.style.width = col.width + 'px';
+      if (col.fixed && col._stickyLeft != null) {
+        $th.style.position = 'sticky';
+        $th.style.left = col._stickyLeft + 'px';
+        $th.style.zIndex = '2';
+      }
       $th.dataset.key = col.key;
       $th.textContent = col.title;
       $headerRow.appendChild($th);
@@ -403,6 +415,12 @@
         $td.className = 'tc-td';
         if (col.align === 'center') $td.classList.add('tc-td--center');
         else if (col.align === 'right') $td.classList.add('tc-td--right');
+        if (col.fixed && col._stickyLeft != null) {
+          $td.style.position = 'sticky';
+          $td.style.left = col._stickyLeft + 'px';
+          $td.style.zIndex = '1';
+          $td.style.background = '#fff';
+        }
 
         if (col.actions) {
           col.actions.forEach((action) => {
