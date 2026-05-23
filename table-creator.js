@@ -428,8 +428,17 @@
         else if (col.align === 'right') $td.classList.add('tc-td--right');
         if (col.fixed && col._stickyLeft != null) {
           $td.classList.add('tc-td--fixed');
-          $td.style.left = (selectOffset + col._stickyLeft) + 'px';
         }
+
+        const $inner = col.fixed ? document.createElement('div') : null;
+        if ($inner) {
+          $inner.style.position = 'sticky';
+          $inner.style.left = (selectOffset + col._stickyLeft) + 'px';
+          $inner.style.zIndex = '2';
+          $td.appendChild($inner);
+        }
+
+        const $target = $inner || $td;
 
         if (col.actions) {
           col.actions.forEach((action) => {
@@ -441,12 +450,12 @@
               e.stopPropagation();
               if (typeof action.onClick === 'function') action.onClick(row);
             });
-            $td.appendChild($btn);
+            $target.appendChild($btn);
           });
         } else if (col.render) {
-          $td.innerHTML = col.render(row[col.key], row);
+          $target.innerHTML = col.render(row[col.key], row);
         } else {
-          $td.textContent = row[col.key] != null ? row[col.key] : '';
+          $target.textContent = row[col.key] != null ? row[col.key] : '';
         }
 
         $tr.appendChild($td);
