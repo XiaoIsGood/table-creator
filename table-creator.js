@@ -57,6 +57,15 @@
   text-overflow: ellipsis !important;
 }
 .tc-thead { position: sticky !important; top: 0 !important; z-index: 10 !important; }
+
+/* Frozen columns */
+.tc-th--fixed,
+.tc-td--fixed { position: sticky !important; z-index: 2 !important; }
+.tc-th--fixed { background: var(--tc-header-bg) !important; z-index: 11 !important; }
+.tc-td--fixed { background: #fff !important; }
+.tc-row:hover .tc-td--fixed { background: var(--tc-row-hover-bg) !important; }
+.tc-row--selected .tc-td--fixed { background: var(--tc-row-selected-bg) !important; }
+.tc-row--selected:hover .tc-td--fixed { background: #d4e8fc !important; }
 .tc-thead .tc-th--select,
 .tc-tbody .tc-td--select { overflow: visible !important; text-overflow: clip !important; }
 .tc-th--center { text-align: center !important; }
@@ -348,6 +357,8 @@
       $headerRow.appendChild($th);
     }
 
+    const selectOffset = selectable ? 40 : 0;
+
     columns.forEach((col) => {
       const $th = document.createElement('th');
       $th.className = 'tc-th';
@@ -355,9 +366,8 @@
       else if (col.align === 'right') $th.classList.add('tc-th--right');
       if (col.width) $th.style.width = col.width + 'px';
       if (col.fixed && col._stickyLeft != null) {
-        $th.style.position = 'sticky';
-        $th.style.left = col._stickyLeft + 'px';
-        $th.style.zIndex = '2';
+        $th.classList.add('tc-th--fixed');
+        $th.style.left = (selectOffset + col._stickyLeft) + 'px';
       }
       $th.dataset.key = col.key;
       $th.textContent = col.title;
@@ -416,10 +426,8 @@
         if (col.align === 'center') $td.classList.add('tc-td--center');
         else if (col.align === 'right') $td.classList.add('tc-td--right');
         if (col.fixed && col._stickyLeft != null) {
-          $td.style.position = 'sticky';
-          $td.style.left = col._stickyLeft + 'px';
-          $td.style.zIndex = '1';
-          $td.style.background = '#fff';
+          $td.classList.add('tc-td--fixed');
+          $td.style.left = (selectOffset + col._stickyLeft) + 'px';
         }
 
         if (col.actions) {
