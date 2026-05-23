@@ -34,7 +34,6 @@
 .tc-table-wrap *::after { box-sizing: border-box !important; }
 
 .tc-table {
-  width: 100% !important;
   border-collapse: separate !important;
   border-spacing: 0 !important;
   border: 1px solid var(--tc-border-color) !important;
@@ -42,7 +41,7 @@
   table-layout: fixed !important;
 }
 
-.tc-table-scroll { max-height: var(--tc-max-height, 400px) !important; overflow-y: auto !important; }
+.tc-table-scroll { overflow-x: auto !important; max-width: 100% !important; }
 
 .tc-thead .tc-th {
   background: var(--tc-header-bg) !important;
@@ -479,15 +478,14 @@
       this._$tbody = table.$tbody;
       this._$headerRow = table.$headerRow;
 
+      const $scrollWrap = document.createElement('div');
+      $scrollWrap.className = 'tc-table-scroll';
       if (this._maxHeight) {
-        const $scrollWrap = document.createElement('div');
-        $scrollWrap.className = 'tc-table-scroll';
-        $scrollWrap.style.setProperty('--tc-max-height', this._maxHeight + 'px');
-        $scrollWrap.appendChild(this._$table);
-        this._$container.appendChild($scrollWrap);
-      } else {
-        this._$container.appendChild(this._$table);
+        $scrollWrap.style.maxHeight = this._maxHeight + 'px';
+        $scrollWrap.style.overflowY = 'auto';
       }
+      $scrollWrap.appendChild(this._$table);
+      this._$container.appendChild($scrollWrap);
 
       // Select-all: three-state checkbox (unchecked / indeterminate / checked)
       if (this._selectable) {
