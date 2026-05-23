@@ -394,6 +394,7 @@
     onSelect,
   ) {
     $tbody.innerHTML = '';
+    const selectOffset = selectable ? 40 : 0;
 
     data.forEach((row) => {
       const $tr = document.createElement('tr');
