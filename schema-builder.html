@@ -146,14 +146,20 @@ function showImport() {
 function hideImport() { document.getElementById('importOverlay').style.display = 'none'; }
 function doImport() {
   try {
-    const arr = JSON.parse(document.getElementById('importText').value);
+    const text = document.getElementById('importText').value.trim();
+    let arr;
+    // Try JSON first, fall back to JS evaluation
+    try { arr = JSON.parse(text); } catch (e) {
+      arr = new Function('return (' + text + ')')();
+    }
     if (!Array.isArray(arr)) { alert('必须是数组格式'); return; }
     columns = arr.map(c => ({
       _id: _id++, key: c.key || '', title: c.title || '', width: c.width || '',
-      align: c.align || 'left', fixed: !!c.fixed, sortable: !!c.sortable, render: typeof c.render === 'function' ? c.render.toString() : (c.render || ''),
+      align: c.align || 'left', fixed: !!c.fixed, sortable: !!c.sortable,
+      render: typeof c.render === 'function' ? c.render.toString() : (c.render || ''),
     }));
     hideImport(); render();
-  } catch(e) { alert('JSON 解析失败: ' + e.message); }
+  } catch(e) { alert('解析失败: ' + e.message); }
 }
 
 render();
