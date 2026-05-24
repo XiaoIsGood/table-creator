@@ -44,6 +44,16 @@
         { key: 'city', title: '城市', width: 120 },
         { key: 'email', title: '邮箱', width: 200 },
         {
+          key: 'pic',
+          title: '图片',
+          width: 100,
+          align: 'center',
+          render: (val, row) =>
+            val
+              ? `<button class="tc-action-btn" onclick="viewImage('${val}')">查看</button>`
+              : '<span style="color:#999">无</span>',
+        },
+        {
           key: 'status',
           title: '状态',
           width: 100,
@@ -52,6 +62,14 @@
             val === 'active'
               ? '<span style="color:#22c55e">在职</span>'
               : '<span style="color:#999">离职</span>',
+        },
+        {
+          key: 'pic2',
+          title: '图片2',
+          width: 130,
+          actions: [
+            { text: '查看', onClick: (row) => alert('编辑: ' + row.name) },
+          ],
         },
         {
           key: 'actions',
@@ -108,11 +126,17 @@
             gender: genders[Math.floor(Math.random() * 2)],
             city: cities[Math.floor(Math.random() * cities.length)],
             email: 'user' + i + '@example.com',
+            pic: i % 3 === 0 ? 'https://picsum.photos/id/' + i + '/200' : '',
             status: statuses[Math.floor(Math.random() * 2)],
           });
         }
         return data;
       })();
+
+      // 外部函数 — render 中通过 onclick 调用
+      function viewImage(url) {
+        window.open(url, '_blank');
+      }
 
       // 初始化 — 空数据
       const table = new TableCreator({

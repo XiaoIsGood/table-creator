@@ -134,6 +134,7 @@
   font-size: 12px !important; color: var(--tc-primary-color) !important;
 }
 .tc-action-btn:hover { background: var(--tc-header-bg) !important; }
+.tc-btn--danger { color: #e74c3c !important; border-color: #e74c3c !important; }
 
 /* Checkbox in select column */
 .tc-th input[type="checkbox"],
