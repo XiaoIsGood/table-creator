@@ -131,7 +131,7 @@
   padding: 3px 10px !important; margin: 0 2px !important;
   background: #fff !important; border: 1px solid var(--tc-border-color) !important;
   border-radius: 3px !important; cursor: pointer !important;
-  font-size: 12px !important; color: var(--tc-primary-color) !important;
+  font-size: 12px !important; color: var(--tc-primary-color);
 }
 .tc-action-btn:hover { background: var(--tc-header-bg) !important; }
 .tc-btn--danger { color: #e74c3c !important; border-color: #e74c3c !important; }
