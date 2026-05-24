@@ -162,7 +162,7 @@
         key: col.key,
         title: col.title || col.key,
         width: width,
-        align: col.align || 'left',
+        align: col.align || 'center',
         render: col.render || null,
         actions: col.actions || null,
         fixed: fixed,
