@@ -131,10 +131,12 @@
   padding: 3px 10px !important; margin: 0 2px !important;
   background: #fff !important; border: 1px solid var(--tc-border-color) !important;
   border-radius: 3px !important; cursor: pointer !important;
-  font-size: 12px !important; color: var(--tc-primary-color);
+  font-size: 12px !important; color: var(--tc-primary-color) !important;
 }
 .tc-action-btn:hover { background: var(--tc-header-bg) !important; }
 .tc-btn--danger { color: #e74c3c !important; border-color: #e74c3c !important; }
+.tc-btn--success { color: #22c55e !important; border-color: #22c55e !important; }
+.tc-btn--warning { color: #f59e0b !important; border-color: #f59e0b !important; }
 
 /* Checkbox in select column */
 .tc-th input[type="checkbox"],
@@ -454,7 +456,6 @@
             const $btn = document.createElement('button');
             $btn.className = 'tc-action-btn';
             if (action.class) $btn.classList.add(action.class);
-            if (action.color) $btn.style.color = action.color;
             $btn.textContent = action.text || action.name;
             $btn.addEventListener('click', (e) => {
               e.stopPropagation();
