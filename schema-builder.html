@@ -77,7 +77,7 @@ let columns = [];
 let _id = 0;
 
 function addColumn() {
-  columns.push({ _id: _id++, key: '', title: '', width: '', align: 'center', fixed: false, sortable: false, render: '' });
+  columns.push({ _id: _id++, key: '', title: '', width: '', align: 'center', fixed: false, sortable: false, render: '', actions: [] });
   render();
 }
 
@@ -87,6 +87,14 @@ function clearAll() { if (columns.length === 0) return; if (confirm('确定清�
 
 function updateCol(idx, key, val) { columns[idx][key] = val; render(); }
 
+function addAction(idx) {
+  if (!columns[idx].actions) columns[idx].actions = [];
+  columns[idx].actions.push({ text: '', class: '' });
+  render();
+}
+function removeAction(idx, ai) { columns[idx].actions.splice(ai, 1); render(); }
+function updateAction(idx, ai, key, val) { columns[idx].actions[ai][key] = val; render(); }
+
 function buildOutput() {
   return columns.map(c => {
     const out = { key: c.key, title: c.title || c.key };
@@ -95,6 +103,13 @@ function buildOutput() {
     if (c.fixed) out.fixed = true;
     if (c.sortable) out.sortable = true;
     if (c.render) out.render = null; // render is function, can't be JSON — placeholder
+    if (c.actions && c.actions.length) {
+      out.actions = c.actions.map(a => ({
+        text: a.text,
+        ...(a.class ? { class: a.class } : {}),
+        onClick: null, // function placeholder — fill in manually
+      }));
+    }
     return out;
   });
 }
@@ -127,7 +142,19 @@ function render() {
         </div>
         <div class="row"><label>冻结列</label><input type="checkbox" ${c.fixed?'checked':''} onchange="updateCol(${idx},'fixed',this.checked)"></div>
         <div class="row"><label>可排序</label><input type="checkbox" ${c.sortable?'checked':''} onchange="updateCol(${idx},'sortable',this.checked)"></div>
-        <div class="row"><label>自定义渲染</label><input value="${c.render||''}" placeholder="JS 函数文本" onchange="updateCol(${idx},'render',this.value)"></div>
+        <div class="row"><label>自定义渲染</label><input value="${c.render||''}" placeholder="(val,row)=>''" onchange="updateCol(${idx},'render',this.value)"></div>
+        <div style="margin-top:8px;border-top:1px dashed #eee;padding-top:8px">
+          <div style="font-size:12px;color:#999;margin-bottom:4px">操作按钮 (actions)</div>
+          ${(c.actions||[]).map((a, ai) => `
+            <div class="row" style="margin-bottom:4px">
+              <label>按钮${ai+1}</label>
+              <input value="${a.text||''}" placeholder="文字" onchange="updateAction(${idx},${ai},'text',this.value)" style="flex:1">
+              <input value="${a.class||''}" placeholder="class" onchange="updateAction(${idx},${ai},'class',this.value)" style="width:80px">
+              <button onclick="removeAction(${idx},${ai})" style="background:none;border:none;color:#e74c3c;cursor:pointer;font-size:14px">×</button>
+            </div>
+          `).join('')}
+          <button class="btn" style="font-size:11px;margin-top:4px;width:100%" onclick="addAction(${idx})">+ 添加按钮</button>
+        </div>
       </div>
     `).join('');
   }
@@ -157,6 +184,10 @@ function doImport() {
       _id: _id++, key: c.key || '', title: c.title || '', width: c.width || '',
       align: c.align || 'left', fixed: !!c.fixed, sortable: !!c.sortable,
       render: typeof c.render === 'function' ? c.render.toString() : (c.render || ''),
+      actions: (c.actions || []).map(a => ({
+        text: a.text || '',
+        class: a.class || '',
+      })),
     }));
     hideImport(); render();
   } catch(e) { alert('解析失败: ' + e.message); }
