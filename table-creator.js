@@ -454,6 +454,7 @@
             const $btn = document.createElement('button');
             $btn.className = 'tc-action-btn';
             if (action.class) $btn.classList.add(action.class);
+            if (action.color) $btn.style.color = action.color;
             $btn.textContent = action.text || action.name;
             $btn.addEventListener('click', (e) => {
               e.stopPropagation();

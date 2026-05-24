@@ -106,6 +106,7 @@ function buildOutput() {
     if (c.actions && c.actions.length) {
       out.actions = c.actions.map(a => ({
         text: a.text,
+        ...(a.color ? { color: a.color } : {}),
         ...(a.class ? { class: a.class } : {}),
         onClick: null, // function placeholder — fill in manually
       }));
@@ -149,7 +150,8 @@ function render() {
             <div class="row" style="margin-bottom:4px">
               <label>按钮${ai+1}</label>
               <input value="${a.text||''}" placeholder="文字" onchange="updateAction(${idx},${ai},'text',this.value)" style="flex:1">
-              <input value="${a.class||''}" placeholder="class" onchange="updateAction(${idx},${ai},'class',this.value)" style="width:80px">
+              <input type="color" value="${a.color||''}" onchange="updateAction(${idx},${ai},'color',this.value)" style="width:30px;height:30px;padding:2px;border:1px solid #d9d9d9;border-radius:4px;cursor:pointer" title="颜色">
+              <input value="${a.class||''}" placeholder="class" onchange="updateAction(${idx},${ai},'class',this.value)" style="width:70px">
               <button onclick="removeAction(${idx},${ai})" style="background:none;border:none;color:#e74c3c;cursor:pointer;font-size:14px">×</button>
             </div>
           `).join('')}
