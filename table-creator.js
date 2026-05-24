@@ -34,6 +34,7 @@
 .tc-table-wrap *::after { box-sizing: border-box !important; }
 
 .tc-table {
+  width: 100% !important;
   border-collapse: separate !important;
   border-spacing: 0 !important;
   border: none !important;
