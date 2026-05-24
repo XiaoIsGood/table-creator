@@ -21,7 +21,7 @@
   </head>
   <body>
     <h1>TableCreator Demo</h1>
-    <div id="table" class="tc-table-wrap"></div>
+    <div id="table" class="tc-table-wrap" style="width: 100%"></div>
 
     <pre
       id="output"
@@ -76,7 +76,11 @@
           title: '操作',
           width: 130,
           actions: [
-            { text: '编辑', onClick: (row) => alert('编辑: ' + row.name) },
+            {
+              text: '编辑',
+              onClick: (row) => alert('编辑: ' + row.name),
+              //color: '#9c4040',
+            },
             {
               text: '删除',
               onClick: (row) => {
