@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Column Builder - TableCreator</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, sans-serif; background: #f0f2f5; min-height: 100vh; }
+.header { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+.header h1 { font-size: 18px; color: #333; }
+.header span { font-size: 13px; color: #999; }
+.wrap { display: flex; height: calc(100vh - 57px); }
+.panel { background: #fff; border-right: 1px solid #e0e0e0; width: 280px; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.panel h3 { font-size: 14px; color: #333; margin-bottom: 4px; }
+.btn { padding: 8px 12px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; background: #fff; cursor: pointer; text-align: center; transition: .15s; }
+.btn:hover { border-color: #4a90d9; color: #4a90d9; }
+.editor { flex: 1; overflow-y: auto; padding: 16px; }
+.editor h3 { font-size: 14px; color: #333; margin-bottom: 12px; }
+.card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 14px; margin-bottom: 10px; }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.card-header .col-label { font-weight: 600; font-size: 14px; }
+.card-header .col-key { font-size: 11px; color: #999; background: #f5f5f5; padding: 2px 8px; border-radius: 3px; }
+.card-header button { background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 16px; }
+.row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+.row label { width: 60px; font-size: 12px; color: #666; flex-shrink: 0; text-align: right; }
+.row input, .row select { flex: 1; padding: 5px 8px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 13px; }
+.row input:focus, .row select:focus { border-color: #4a90d9; outline: none; }
+.row input[type="checkbox"] { flex: 0; width: 16px; height: 16px; }
+.output-panel { background: #1e1e1e; width: 360px; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.output-panel h3 { font-size: 14px; color: #ccc; }
+.output-panel pre { flex: 1; background: #2d2d2d; border-radius: 6px; padding: 14px; font-size: 12px; color: #d4d4d4; white-space: pre-wrap; word-break: break-all; overflow-y: auto; }
+.output-panel button { padding: 8px; background: #4a90d9; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
+.output-panel button:hover { background: #3a7bc8; }
+.empty-hint { color: #bbb; text-align: center; padding: 60px 0; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>TableCreator Column Builder</h1>
+  <span>可视化构建 columns 配置</span>
+</div>
+<div class="wrap">
+  <div class="panel">
+    <h3>添加列</h3>
+    <button class="btn" onclick="addColumn()">+ 添加列</button>
+    <button class="btn" style="border-color:#4a90d9;color:#4a90d9;margin-top:8px" onclick="showImport()">📥 导入 JSON</button>
+    <button class="btn" style="border-color:#e74c3c;color:#e74c3c;margin-top:4px" onclick="clearAll()">🗑 一键清空</button>
+    <div style="margin-top:12px;font-size:12px;color:#999;">添加后点击字段标签可收起/展开</div>
+  </div>
+
+  <div class="editor" id="editor">
+    <h3>列配置</h3>
+    <div id="cards"></div>
+  </div>
+
+  <div class="output-panel">
+    <h3>Columns JSON</h3>
+    <pre id="output"></pre>
+    <button onclick="copyOutput()">复制 JSON</button>
+  </div>
+</div>
+
+<div id="importOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:999;justify-content:center;align-items:center">
+  <div style="background:#fff;border-radius:8px;padding:24px;width:600px;max-height:80vh;display:flex;flex-direction:column;gap:12px">
+    <h3 style="margin:0">导入 Columns JSON</h3>
+    <textarea id="importText" style="flex:1;min-height:200px;padding:12px;border:1px solid #d9d9d9;border-radius:6px;font-family:monospace;font-size:13px;resize:vertical" placeholder="粘贴 columns JSON..."></textarea>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="hideImport()">取消</button>
+      <button class="btn" style="background:#4a90d9;color:#fff;border-color:#4a90d9" onclick="doImport()">导入</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let columns = [];
+let _id = 0;
+
+function addColumn() {
+  columns.push({ _id: _id++, key: '', title: '', width: '', align: 'left', fixed: false, sortable: false, render: '' });
+  render();
+}
+
+function removeColumn(idx) { columns.splice(idx, 1); render(); }
+function moveColumn(idx, dir) { const t = idx + dir; if (t < 0 || t >= columns.length) return; [columns[idx], columns[t]] = [columns[t], columns[idx]]; render(); }
+function clearAll() { if (columns.length === 0) return; if (confirm('确定清空？')) { columns.length = 0; render(); } }
+
+function updateCol(idx, key, val) { columns[idx][key] = val; render(); }
+
+function buildOutput() {
+  return columns.map(c => {
+    const out = { key: c.key, title: c.title || c.key };
+    if (c.width) out.width = Number(c.width);
+    if (c.align && c.align !== 'left') out.align = c.align;
+    if (c.fixed) out.fixed = true;
+    if (c.sortable) out.sortable = true;
+    if (c.render) out.render = null; // render is function, can't be JSON — placeholder
+    return out;
+  });
+}
+
+function render() {
+  const el = document.getElementById('cards');
+  if (columns.length === 0) {
+    el.innerHTML = '<div class="empty-hint">👆 点击"添加列"</div>';
+  } else {
+    el.innerHTML = columns.map((c, idx) => `
+      <div class="card">
+        <div class="card-header">
+          <div style="display:flex;align-items:center;gap:4px">
+            <button onclick="moveColumn(${idx},-1)" title="上移" ${idx===0?'disabled':''} style="font-size:12px;color:#999">▲</button>
+            <button onclick="moveColumn(${idx},1)" title="下移" ${idx===columns.length-1?'disabled':''} style="font-size:12px;color:#999">▼</button>
+            <span class="col-label">${c.title || '未命名'}</span>
+            <span class="col-key">${c.key || 'key'}</span>
+          </div>
+          <button onclick="removeColumn(${idx})" title="删除">×</button>
+        </div>
+        <div class="row"><label>Key</label><input value="${c.key||''}" placeholder="字段名" onchange="updateCol(${idx},'key',this.value)"></div>
+        <div class="row"><label>Title</label><input value="${c.title||''}" placeholder="列头" onchange="updateCol(${idx},'title',this.value)"></div>
+        <div class="row"><label>宽度</label><input value="${c.width||''}" placeholder="px" onchange="updateCol(${idx},'width',this.value)"></div>
+        <div class="row"><label>对齐</label>
+          <select onchange="updateCol(${idx},'align',this.value)">
+            <option value="left" ${c.align==='left'?'selected':''}>左对齐</option>
+            <option value="center" ${c.align==='center'?'selected':''}>居中</option>
+            <option value="right" ${c.align==='right'?'selected':''}>右对齐</option>
+          </select>
+        </div>
+        <div class="row"><label>冻结列</label><input type="checkbox" ${c.fixed?'checked':''} onchange="updateCol(${idx},'fixed',this.checked)"></div>
+        <div class="row"><label>可排序</label><input type="checkbox" ${c.sortable?'checked':''} onchange="updateCol(${idx},'sortable',this.checked)"></div>
+        <div class="row"><label>自定义渲染</label><input value="${c.render||''}" placeholder="JS 函数文本" onchange="updateCol(${idx},'render',this.value)"></div>
+      </div>
+    `).join('');
+  }
+  document.getElementById('output').textContent = JSON.stringify(buildOutput(), null, 2);
+}
+
+function copyOutput() {
+  navigator.clipboard.writeText(JSON.stringify(buildOutput(), null, 2));
+  alert('已复制到剪贴板');
+}
+
+function showImport() {
+  document.getElementById('importOverlay').style.display = 'flex';
+  document.getElementById('importText').focus();
+}
+function hideImport() { document.getElementById('importOverlay').style.display = 'none'; }
+function doImport() {
+  try {
+    const arr = JSON.parse(document.getElementById('importText').value);
+    if (!Array.isArray(arr)) { alert('必须是数组格式'); return; }
+    columns = arr.map(c => ({
+      _id: _id++, key: c.key || '', title: c.title || '', width: c.width || '',
+      align: c.align || 'left', fixed: !!c.fixed, sortable: !!c.sortable, render: typeof c.render === 'function' ? c.render.toString() : (c.render || ''),
+    }));
+    hideImport(); render();
+  } catch(e) { alert('JSON 解析失败: ' + e.message); }
+}
+
+render();
+</script>
+</body>
+</html>
