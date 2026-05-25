@@ -150,7 +150,21 @@ table.onPageChange(async ({ page, pageSize }) => {
 |------|------|------|
 | text | String | 按钮文字 |
 | onClick | Function | 点击回调，参数为行数据 |
-| class | String | 可选的附加样式类 |
+| class | String | 预设样式：`tc-btn--danger`(红)、`tc-btn--success`(绿)、`tc-btn--warning`(黄) |
+| show | Function | `(row) => boolean`，返回 false 隐藏按钮 |
+
+### 条件显隐
+
+```js
+{
+  key: 'review', title: '审核',
+  actions: [
+    { text: '通过', onClick: ..., show: (row) => row.review !== 1,  class: 'tc-btn--success' },
+    { text: '不通过', onClick: ..., show: (row) => row.review === 0, class: 'tc-btn--danger' },
+    { text: '取消', onClick: ..., show: (row) => row.review !== 0, class: 'tc-btn--warning' },
+  ],
+}
+```
 
 ## 自定义样式
 
