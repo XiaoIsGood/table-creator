@@ -454,6 +454,8 @@
 
         if (col.actions) {
           col.actions.forEach((action) => {
+            // Conditional show: function receives full row, return false to hide
+            if (typeof action.show === 'function' && !action.show(row)) return;
             const $btn = document.createElement('button');
             $btn.className = 'tc-action-btn';
             if (action.class) $btn.classList.add(action.class);
