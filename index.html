@@ -64,11 +64,14 @@
               : '<span style="color:#999">离职</span>',
         },
         {
-          key: 'pic2',
-          title: '图片2',
-          width: 130,
+          key: 'review',
+          title: '审核',
+          width: 180,
+          align: 'center',
           actions: [
-            { text: '查看', onClick: (row) => alert('编辑: ' + row.name) },
+            { text: '通过', onClick: (row) => review(row, 1), show: (row) => row.review !== 1, class: 'tc-btn--success' },
+            { text: '不通过', onClick: (row) => review(row, -1), show: (row) => row.review !== -1 && row.review !== 1, class: 'tc-btn--danger' },
+            { text: '取消', onClick: (row) => review(row, 0), show: (row) => row.review !== 0, class: 'tc-btn--warning' },
           ],
         },
         {
@@ -131,6 +134,7 @@
             city: cities[Math.floor(Math.random() * cities.length)],
             email: 'user' + i + '@example.com',
             pic: i % 3 === 0 ? 'https://picsum.photos/id/' + i + '/200' : '',
+            review: [0, 0, 0, 1, -1][Math.floor(Math.random() * 5)],
             status: statuses[Math.floor(Math.random() * 2)],
           });
         }
@@ -138,8 +142,10 @@
       })();
 
       // 外部函数 — render 中通过 onclick 调用
-      function viewImage(url) {
-        window.open(url, '_blank');
+      function viewImage(url) { window.open(url, '_blank'); }
+      function review(row, status) {
+        const map = { '-1': '不通过', '0': '未审核', '1': '通过' };
+        alert(`${row.name}: ${map[row.review]} → ${map[status]}`);
       }
 
       // 初始化 — 空数据
