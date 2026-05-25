@@ -69,9 +69,24 @@
           width: 180,
           align: 'center',
           actions: [
-            { text: '通过', onClick: (row) => review(row, 1), show: (row) => row.review !== 1, class: 'tc-btn--success' },
-            { text: '不通过', onClick: (row) => review(row, -1), show: (row) => row.review !== -1 && row.review !== 1, class: 'tc-btn--danger' },
-            { text: '取消', onClick: (row) => review(row, 0), show: (row) => row.review !== 0, class: 'tc-btn--warning' },
+            {
+              text: '通过',
+              onClick: (row) => review(row, 1),
+              show: (row) => row.review !== 1,
+              class: 'tc-btn--success',
+            },
+            {
+              text: '不通过',
+              onClick: (row) => review(row, -1),
+              show: (row) => row.review !== -1 && row.review !== 1,
+              class: 'tc-btn--danger',
+            },
+            {
+              text: '取消',
+              onClick: (row) => review(row, 0),
+              show: (row) => row.review !== 0,
+              class: 'tc-btn--warning',
+            },
           ],
         },
         {
@@ -142,9 +157,11 @@
       })();
 
       // 外部函数 — render 中通过 onclick 调用
-      function viewImage(url) { window.open(url, '_blank'); }
+      function viewImage(url) {
+        window.open(url, '_blank');
+      }
       function review(row, status) {
-        const map = { '-1': '不通过', '0': '未审核', '1': '通过' };
+        const map = { '-1': '不通过', 0: '未审核', 1: '通过' };
         alert(`${row.name}: ${map[row.review]} → ${map[status]}`);
       }
 
